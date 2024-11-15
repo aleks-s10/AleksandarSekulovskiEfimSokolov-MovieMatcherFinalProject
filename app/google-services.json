@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "998037351622",
+    "project_id": "moviematcherfinalproject",
+    "storage_bucket": "moviematcherfinalproject.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998037351622:android:f788c37b9c83a2881efbc7",
+        "android_client_info": {
+          "package_name": "com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5rc-6PI8iWqZPH74R7D_I-7r4Eh7LquM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
