@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.Homepage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.LoginPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SignupPage
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SwipingScreen
 
 @Composable
 fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel) {
@@ -22,6 +23,9 @@ fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel
         }
         composable("home") {
             Homepage(modifier, navController, authViewModel)
+        }
+        composable("home") {
+            SwipingScreen(modifier, navController, authViewModel)
         }
     })
 
