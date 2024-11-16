@@ -24,7 +24,7 @@ fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel
         composable("home") {
             Homepage(modifier, navController, authViewModel)
         }
-        composable("home") {
+        composable("swiping") {
             SwipingScreen(modifier, navController, authViewModel)
         }
     })
