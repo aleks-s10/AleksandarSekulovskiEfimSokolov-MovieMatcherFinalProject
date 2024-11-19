@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -42,7 +43,7 @@ fun LoginPage(modifier : Modifier = Modifier, navController: NavController, auth
 
     LaunchedEffect(authState.value) {
         when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("home")
+            is AuthState.Authenticated -> navController.navigate("swiping")
             is AuthState.Error -> Toast.makeText(context,
                 (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
@@ -77,7 +78,8 @@ fun LoginPage(modifier : Modifier = Modifier, navController: NavController, auth
             },
             label = {
                 Text(text = "Password")
-            }
+            },
+            visualTransformation = PasswordVisualTransformation()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
