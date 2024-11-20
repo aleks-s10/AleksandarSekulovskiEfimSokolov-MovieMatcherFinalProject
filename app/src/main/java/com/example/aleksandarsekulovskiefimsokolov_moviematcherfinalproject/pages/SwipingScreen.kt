@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -117,7 +118,7 @@ fun MovieTitleCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: 
             .fillMaxWidth()
             .padding(top = 10.dp, start = 15.dp, end = 15.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Box(
             modifier = Modifier
@@ -145,7 +146,7 @@ fun MovieItemCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: I
             .padding(start = 10.dp, end = 10.dp),
 //            .padding(top = 10.dp, start = 15.dp, end = 15.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Box(
             modifier = Modifier
@@ -218,6 +219,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
     var i by remember { mutableStateOf(0) }
     var liked by remember { mutableStateOf(mutableSetOf<Int>()) }
     var preview by remember { mutableStateOf(false) }
+    val authState = authViewModel.authState.observeAsState()
 
     val onSwipeLeft: () -> Unit = {
         i++
@@ -312,6 +314,16 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     fontSize = 20.sp,
                     color = Color.White
                 ) }
+//                TextButton(
+//                    onClick = {
+//                        authViewModel.signout()
+//                    },
+//                    modifier = Modifier.align(Alignment.TopStart).padding(top = 15.dp)
+//                ) { Text(
+//                    "Sign out",
+//                    fontSize = 20.sp,
+//                    color = Color.White
+//                ) }
                 Column {
                     MovieTitleCard(
                         modifier = Modifier.padding(top = 50.dp),
@@ -333,7 +345,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(130.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.LightGray),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         onClick = {
                             dismissRight = true
                         },
@@ -348,7 +360,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(130.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.LightGray),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         onClick = {
                             dismissLeft = true
                         },

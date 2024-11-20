@@ -1,15 +1,24 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -27,6 +37,7 @@ import androidx.navigation.NavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthState
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
 
@@ -52,11 +63,11 @@ fun LoginPage(modifier : Modifier = Modifier, navController: NavController, auth
     }
 
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondaryContainer),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Login Page", fontSize = 32.sp)
+        Text(text = "Welcome to MovieMatch!", fontSize = 32.sp)
 
         Spacer( modifier = Modifier.height(16.dp))
         
@@ -67,7 +78,8 @@ fun LoginPage(modifier : Modifier = Modifier, navController: NavController, auth
             },
             label = {
                 Text(text = "Email")
-            }
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(containerColor = Color.White)
         )
         Spacer(modifier = Modifier.height(0.dp))
 
@@ -79,15 +91,17 @@ fun LoginPage(modifier : Modifier = Modifier, navController: NavController, auth
             label = {
                 Text(text = "Password")
             },
+            colors = TextFieldDefaults.outlinedTextFieldColors(containerColor = Color.White),
             visualTransformation = PasswordVisualTransformation()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
+        OutlinedButton(onClick = {
             authViewModel.login(email,password)
         },
-            enabled = authState.value != AuthState.Loading
+            enabled = authState.value != AuthState.Loading,
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
             ) {
             Text(text = "Login")
         }
