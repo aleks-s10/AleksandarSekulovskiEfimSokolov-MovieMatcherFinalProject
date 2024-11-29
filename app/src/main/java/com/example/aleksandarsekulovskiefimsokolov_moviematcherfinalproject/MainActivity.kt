@@ -27,13 +27,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.ui.theme.AleksandarSekulovskiEfimSokolovMovieMatcherFinalProjectTheme
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        analytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val authViewModel : AuthViewModel by viewModels()

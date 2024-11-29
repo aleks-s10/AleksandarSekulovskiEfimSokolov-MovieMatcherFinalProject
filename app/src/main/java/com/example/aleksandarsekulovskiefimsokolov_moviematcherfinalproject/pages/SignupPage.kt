@@ -111,5 +111,12 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         }) {
             Text(text = "Already have an account? Login!")
         }
+
+        TextButton(onClick = {
+            throw RuntimeException("Test Crash")
+        }) {
+            Text(text = "Test Crash")
+        }
+
     }
 }
