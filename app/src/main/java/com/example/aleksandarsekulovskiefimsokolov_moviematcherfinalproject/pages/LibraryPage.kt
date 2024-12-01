@@ -27,7 +27,7 @@ fun Library(changeAddInProgress: () -> Unit, navController: NavController){
     Box(
         modifier = Modifier.fillMaxSize()
     ){
-        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+        Column(modifier = Modifier.align(Alignment.TopCenter)) {
             SearchHeader(
                 title = "Library",
                 rightButtonHandler =  {

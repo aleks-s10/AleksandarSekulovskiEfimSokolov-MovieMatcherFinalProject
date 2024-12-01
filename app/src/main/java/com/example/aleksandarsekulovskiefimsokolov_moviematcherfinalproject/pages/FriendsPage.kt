@@ -27,7 +27,7 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
     Box(
         modifier = Modifier.fillMaxSize()
     ){
-        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+        Column(modifier = Modifier.align(Alignment.TopCenter)) {
             SearchHeader(
                 title = "Friends",
                 rightButtonHandler =  {
