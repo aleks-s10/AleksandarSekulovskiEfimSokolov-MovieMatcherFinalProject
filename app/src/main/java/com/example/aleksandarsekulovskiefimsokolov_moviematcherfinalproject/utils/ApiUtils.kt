@@ -44,13 +44,15 @@ suspend fun fetchAndStoreMovies(context: Context, page: Int) {
                     poster = movieAPI.poster_path ?: "",
                     rating = movieAPI.vote_average,
                     release_year = movieAPI.release_date?.split("-")?.get(0) ?: "Unknown",
-                    title = movieAPI.title ?: "Untitled"
+                    title = movieAPI.title ?: "Untitled",
+                    page = page
                 )
             }
             db.movieDao().insertAll(moviesList)
         } else {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "API Error: ${response.message()}", Toast.LENGTH_SHORT).show()
+                println("API Error:\\n ${response.errorBody()}")
+                Toast.makeText(context, "API Error:\n ${response.errorBody()}", Toast.LENGTH_SHORT).show()
             }
         }
     } catch (e: IOException) {

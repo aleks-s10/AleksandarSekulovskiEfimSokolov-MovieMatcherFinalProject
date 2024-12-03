@@ -11,5 +11,6 @@ data class MovieDB(
     val poster: String,
     val rating: Double,
     val release_year: String,
-    val title: String
+    val title: String,
+    val page: Int
 )

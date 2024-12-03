@@ -8,8 +8,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.FriendsPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.GroupsPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.Homepage
-import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.LibraryPage
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.TrendingPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.LoginPage
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.ProfilePage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SignupPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SwipingScreen
 
@@ -30,14 +31,17 @@ fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel
         composable("swiping") {
             SwipingScreen(modifier, navController, authViewModel)
         }
-        composable("library") {
-            LibraryPage(modifier, navController, authViewModel)
+        composable("trending") {
+            TrendingPage(modifier, navController, authViewModel)
         }
         composable("friends") {
             FriendsPage(modifier, navController, authViewModel)
         }
         composable("groups") {
             GroupsPage(modifier, navController, authViewModel)
+        }
+        composable("profile") {
+            ProfilePage(modifier, navController, authViewModel)
         }
     })
 

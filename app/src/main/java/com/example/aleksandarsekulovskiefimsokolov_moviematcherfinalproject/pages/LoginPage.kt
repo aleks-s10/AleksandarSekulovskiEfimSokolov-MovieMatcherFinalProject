@@ -65,16 +65,15 @@ fun LoginPage(
             db.movieDao().getAllMovies()
         }
 
-        // Handle authentication state
-//        when (authState.value) {
-//            is AuthState.Authenticated -> navController.navigate("library")
-//            is AuthState.Error -> Toast.makeText(
-//                context,
-//                (authState.value as AuthState.Error).message,
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            else -> Unit
-//        }
+        when (authState.value) {
+            is AuthState.Authenticated -> navController.navigate("trending")
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+            else -> Unit
+        }
     }
 
     Column(
@@ -120,23 +119,23 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display all information about movies retrieved from the database
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(movies) { movie ->
-                Column(
-                    modifier = Modifier.background(Color.White).padding(8.dp)
-                ) {
-                    Text(text = "Title: ${movie.title}", fontSize = 18.sp, color = Color.Black)
-                    Text(text = "Description: ${movie.description}", fontSize = 14.sp, color = Color.DarkGray)
-                    Text(text = "Genre: ${movie.genre}", fontSize = 14.sp, color = Color.Black)
-                    Text(text = "Release Year: ${movie.release_year}", fontSize = 14.sp, color = Color.Black)
-                    Text(text = "Rating: ${movie.rating}", fontSize = 14.sp, color = Color.Black)
-                    Text(text = "Poster Path: ${movie.poster}", fontSize = 12.sp, color = Color.Gray)
-                }
-            }
-        }
+//        // Display all information about movies retrieved from the database
+//        LazyColumn(
+//            modifier = Modifier.fillMaxSize(),
+//            verticalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            items(movies) { movie ->
+//                Column(
+//                    modifier = Modifier.background(Color.White).padding(8.dp)
+//                ) {
+//                    Text(text = "Title: ${movie.title}", fontSize = 18.sp, color = Color.Black)
+//                    Text(text = "Description: ${movie.description}", fontSize = 14.sp, color = Color.DarkGray)
+//                    Text(text = "Genre: ${movie.genre}", fontSize = 14.sp, color = Color.Black)
+//                    Text(text = "Release Year: ${movie.release_year}", fontSize = 14.sp, color = Color.Black)
+//                    Text(text = "Rating: ${movie.rating}", fontSize = 14.sp, color = Color.Black)
+//                    Text(text = "Poster Path: ${movie.poster}", fontSize = 12.sp, color = Color.Gray)
+//                }
+//            }
+//        }
     }
 }

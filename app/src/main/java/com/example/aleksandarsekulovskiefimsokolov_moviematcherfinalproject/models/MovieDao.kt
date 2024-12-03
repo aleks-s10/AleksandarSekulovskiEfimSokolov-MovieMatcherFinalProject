@@ -12,4 +12,7 @@ interface MovieDao {
 
     @Query("SELECT * FROM movies")
     suspend fun getAllMovies(): List<MovieDB>
+
+    @Query("SELECT * FROM movies where page == :page")
+    suspend fun getMoviesByPage(page: Int): List<MovieDB>
 }

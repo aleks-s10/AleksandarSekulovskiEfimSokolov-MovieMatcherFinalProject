@@ -8,6 +8,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,7 +88,7 @@ fun SearchHeader(
     var searchQuery by remember { mutableStateOf("") }
 
     Column(modifier = modifier
-        .fillMaxSize()
+        .fillMaxWidth()
         .padding(16.dp)) {
 
         Row(
@@ -121,6 +124,59 @@ fun SearchHeader(
 }
 
 
+@Composable
+fun TrendingHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    firstPage: Boolean,
+    leftButtonHandler: () -> Unit,
+    rightButtonHandler: () -> Unit
+){
+    Column (modifier = Modifier.padding(start = 16.dp, end = 16.dp)){
+        Spacer(modifier = Modifier.height(45.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge
+            )
+            if (firstPage ){
+                IconButton(onClick = rightButtonHandler) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowForward,
+                        contentDescription = "Add Movie",
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+            }
+            else{
+                Row{
+                    IconButton(onClick = leftButtonHandler) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Add Movie",
+                            modifier = Modifier.size(35.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    IconButton(onClick = rightButtonHandler) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowForward,
+                            contentDescription = "Add Movie",
+                            modifier = Modifier.size(35.dp)
+                        )
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
 
 @Composable
 fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController) {
@@ -132,11 +188,11 @@ fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = { navController.navigate("library") }
+                onClick = { navController.navigate("Trending") }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Home,
-                    contentDescription = "Home",
+                    contentDescription = "Trending",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
@@ -145,7 +201,7 @@ fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController
             ) {
                 Icon(
                     imageVector = Icons.Filled.Face,
-                    contentDescription = "Search",
+                    contentDescription = "friends",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
@@ -154,12 +210,22 @@ fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController
             ) {
                 Icon(
                     imageVector = Icons.Filled.Share,
-                    contentDescription = "Settings",
+                    contentDescription = "groups",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            IconButton(
+                onClick = { navController.navigate("profile") }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = "Profile",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
     }
+
 //
 //@Preview(showBackground = true)
 //@Composable
