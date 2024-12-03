@@ -127,7 +127,9 @@ fun TrendingItem(movie: MovieDB, modifier: Modifier = Modifier, setCurrentMovie:
 }
 @Composable
 fun TrendingContent(movies: List<MovieDB>, setCurrentMovie: (MovieDB) -> Unit) {
-    LazyColumn {
+    LazyColumn(
+        Modifier.padding(bottom = 50.dp)
+    ) {
         items(movies.chunked(2)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 it.forEach { movieIndex ->
@@ -164,8 +166,8 @@ fun Trending(setCurrentMovie: (MovieDB) -> Unit, navController: NavController,
 @Composable
 fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel){
     var page by remember { mutableIntStateOf(1) }
-    val pageUp = {page = page + 1}
-    val pageDown = {page = page - 1}
+    val pageUp = {page += 1}
+    val pageDown = {page -= 1}
     val placeHolderMovie = MovieDB("", "", "", "", 1.2, "", "", 1)
     var currentMovie by remember { mutableStateOf<MovieDB>(placeHolderMovie) }
     var detailsView by remember { mutableStateOf(false) }

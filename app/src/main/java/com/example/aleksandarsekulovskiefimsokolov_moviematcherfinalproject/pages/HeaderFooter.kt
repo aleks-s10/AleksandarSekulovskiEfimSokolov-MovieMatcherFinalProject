@@ -183,12 +183,14 @@ fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController
         Row(
             modifier = modifier
                 .fillMaxWidth()
+                .height(50.dp)
                 .background(color = MaterialTheme.colorScheme.primary),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = { navController.navigate("Trending") }
+                onClick = { navController.navigate("Trending")},
+//                modifier = Modifier.padding(bottom = 5.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Home,
