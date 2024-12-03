@@ -1,11 +1,7 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "movies")
-data class MovieDB(
-    @PrimaryKey val id: String,
+data class FirestoreMovieDB (
+    val id: String,
     val description: String,
     val genre: String,
     val poster: String,

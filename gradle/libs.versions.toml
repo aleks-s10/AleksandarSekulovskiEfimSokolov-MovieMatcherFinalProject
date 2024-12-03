@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.0"
+agp = "8.7.2"
 firebaseBom = "33.5.1"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -13,15 +13,24 @@ firebaseAuthKtx = "23.1.0"
 navigationCompose = "2.8.4"
 firebaseAuth = "23.1.0"
 firebaseCrashlyticsBuildtools = "3.0.2"
+roomCompiler = "2.6.1"
+roomKsp = "2.6.1"
+roomRuntime = "2.6.1"
+roomRuntimeVersion = "2.5.0"
 runtimeLivedata = "1.7.5"
 storage = "1.5.0"
 firebaseCrashlytics = "19.2.1"
 googleFirebaseCrashlytics = "3.0.2"
 firebaseMessaging = "24.1.0"
 firebaseFirestoreKtx = "25.1.1"
+coreKtxVersion = "1.15.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler" }
+androidx-room-ksp = { module = "androidx.room:room-ksp", version.ref = "roomKsp" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-runtime-v250 = { module = "androidx.room:room-runtime", version.ref = "roomRuntimeVersion" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -46,9 +55,11 @@ androidx-storage = { group = "androidx.test.services", name = "storage", version
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.1.0" }
 google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
 
