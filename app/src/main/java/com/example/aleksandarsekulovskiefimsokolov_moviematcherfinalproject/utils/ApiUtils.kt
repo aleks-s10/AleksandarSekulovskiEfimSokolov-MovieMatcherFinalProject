@@ -51,6 +51,8 @@ suspend fun fetchAndStoreMovies(context: Context, page: Int) {
             db.movieDao().insertAll(moviesList)
         } else {
             withContext(Dispatchers.Main) {
+                println("PAGE NUMBER IS:$page")
+                println("API Error:\n ${response.errorBody()?.string()}")
                 println("API Error:\\n ${response.errorBody()}")
                 Toast.makeText(context, "API Error:\n ${response.errorBody()}", Toast.LENGTH_SHORT).show()
             }

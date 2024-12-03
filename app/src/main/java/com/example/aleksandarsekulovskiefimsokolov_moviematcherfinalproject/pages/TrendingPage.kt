@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,6 +60,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.util
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.Int
 
 val base_url = "https://image.tmdb.org/t/p/w500"
 
@@ -147,8 +149,8 @@ fun Trending(setCurrentMovie: (MovieDB) -> Unit, navController: NavController,
             TrendingHeader(
                 title = "Trending Now",
                 firstPage = page == 1,
-                leftButtonHandler = pageUp,
-                rightButtonHandler = pageDown
+                leftButtonHandler = pageDown,
+                rightButtonHandler = pageUp
             )
             TrendingContent(movies, setCurrentMovie = setCurrentMovie)
         }
@@ -161,7 +163,7 @@ fun Trending(setCurrentMovie: (MovieDB) -> Unit, navController: NavController,
 
 @Composable
 fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel){
-    var page by remember { mutableStateOf(1) }
+    var page by remember { mutableIntStateOf(1) }
     val pageUp = {page = page + 1}
     val pageDown = {page = page - 1}
     val placeHolderMovie = MovieDB("", "", "", "", 1.2, "", "", 1)
@@ -181,7 +183,7 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
             db.movieDao().getMoviesByPage(page)
         }
         if (movies.isEmpty()){
-            fetchAndStoreMovies(context, page)
+            fetchAndStoreMovies(context, page.toInt())
             movies = withContext(Dispatchers.IO) {
                 db.movieDao().getMoviesByPage(page)
             }
