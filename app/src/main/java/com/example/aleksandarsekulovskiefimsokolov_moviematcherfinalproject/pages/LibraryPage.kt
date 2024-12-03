@@ -3,9 +3,12 @@ package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pag
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 
 @Composable
@@ -36,6 +41,14 @@ fun Library(changeAddInProgress: () -> Unit, navController: NavController){
                 searchHandler = {},
                 searchLabel = "Search Library",
                 rightButtonIcon = Icons.Filled.Add,
+            )
+            Text("IDK")
+            SubcomposeAsyncImage(
+                model = "https://image.tmdb.org/t/p/w500/yh64qw9mgXBvlaWDi7Q9tpUBAvH.jpg?api_key=a4a43632b097a28262e8e7673da3866e",
+                contentDescription = "Image",
+                modifier = Modifier.fillMaxWidth(),
+                loading = { CircularProgressIndicator() },
+//                error = { Text("Could not load this BS") }
             )
         }
         FooterNavigation(
@@ -84,3 +97,15 @@ fun LibraryPage(modifier : Modifier = Modifier, navController: NavController, au
 //fun LibraryPagePreview(){
 //    LibraryPage()
 //}
+
+@Preview
+@Composable
+fun ImagePreview(){
+    val base_url = "https://image.tmdb.org/t/p/w500"
+    SubcomposeAsyncImage(
+        model = "$base_url/yh64qw9mgXBvlaWDi7Q9tpUBAvH.jpg",
+        contentDescription = "Image",
+        modifier = Modifier.fillMaxWidth(),
+        loading = { CircularProgressIndicator() },
+    )
+}

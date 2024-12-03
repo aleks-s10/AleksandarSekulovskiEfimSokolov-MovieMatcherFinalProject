@@ -25,11 +25,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
 import android.util.Log
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.util.DebugLogger
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieAPI
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
 import com.google.firebase.firestore.firestore
+import okhttp3.Call
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Interceptor
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), ImageLoaderFactory{
     private lateinit var auth: FirebaseAuth
     private lateinit var analytics: FirebaseAnalytics
 
@@ -186,4 +193,21 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader(context = this).newBuilder()
+            .callFactory{
+                Call.Factory {
+                    OkHttpClient().newCall(
+                        it.newBuilder().url(
+                            it.url.toString()
+                            + "?api_key=a4a43632b097a28262e8e7673da3866e").build()
+                    )
+                }
+            }
+            .logger(DebugLogger())
+            .build()
+    }
+
+
 }
