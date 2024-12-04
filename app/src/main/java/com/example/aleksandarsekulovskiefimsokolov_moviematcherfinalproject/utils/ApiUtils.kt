@@ -45,7 +45,8 @@ suspend fun fetchAndStoreMovies(context: Context, page: Int) {
                     rating = movieAPI.vote_average,
                     release_year = movieAPI.release_date?.split("-")?.get(0) ?: "Unknown",
                     title = movieAPI.title ?: "Untitled",
-                    page = page
+                    page = page,
+                    favorite = false
                 )
             }
             db.movieDao().insertAll(moviesList)

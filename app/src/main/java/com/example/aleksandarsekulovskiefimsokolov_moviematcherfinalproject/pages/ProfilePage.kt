@@ -1,6 +1,7 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
 
+import android.graphics.Movie
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.openjdk.tools.javac.jvm.Profile
 
 // Assuming you have a placeholder image resource named 'profile_placeholder' in your drawable folder
@@ -57,30 +63,7 @@ data class User(
     val recentMovies: List<MovieDB>
 )
 
-
-// Sample data
-val sampleMovies = listOf(
-    MovieDB(
-        description = "Eddie and Venom are on the run.",
-        genre = "Adventure",
-        poster = "/aosm8NMQ3UyoBVpSxyimorCQykC.jpg",
-        rating = 8.5,
-        release_year = "2024",
-        title = "Venom: The Last Dance",
-        page = 1,
-        id = "123"
-    ),
-    MovieDB(
-        description = "A thrilling tale of mystery and suspense.",
-        genre = "Thriller",
-        poster = "/cNtAslrDhk1i3IOZ16vF7df6lMy.jpg",
-        rating = 7.8,
-        release_year = "2020",
-        title = "Absolution",
-        page = 2,
-        id = "1234"
-    ),
-)
+val sampleMovies: List<MovieDB> = listOf()
 
 val sampleUser = User(
     firstName = "John",
@@ -112,6 +95,15 @@ fun ProfileScreen(user: User, navController: NavController) {
     var lastName by rememberSaveable { mutableStateOf(user.lastName) }
     var username by rememberSaveable { mutableStateOf(user.username) }
     var favoriteGenre by rememberSaveable { mutableStateOf(user.favoriteGenre) }
+
+    var movies by remember { mutableStateOf<List<MovieDB>>(emptyList()) }
+    val context = LocalContext.current
+    val db = DatabaseProvider.getDatabase(context)
+    LaunchedEffect(Unit) {
+        movies = withContext(Dispatchers.IO) {
+            db.movieDao().getFavorites()
+        }
+    }
 
     val onSubmit: (User) -> Unit = {
         firstName = it.firstName
@@ -189,15 +181,20 @@ fun ProfileScreen(user: User, navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Recently Watched Movies",
+                    text = "Favorite Movies",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(user.recentMovies) { movie ->
-                        MovieItem(movie = movie)
+                    items(movies.chunked(3)) {
+                        Row(modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            it.forEach { movieIndex ->
+                                MovieItem(movieIndex)
+                            }
+                        }
                     }
                 }
             }

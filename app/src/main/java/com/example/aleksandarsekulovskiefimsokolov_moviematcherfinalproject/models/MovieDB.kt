@@ -12,5 +12,6 @@ data class MovieDB(
     val rating: Double,
     val release_year: String,
     val title: String,
-    val page: Int
+    val page: Int,
+    val favorite: Boolean
 )

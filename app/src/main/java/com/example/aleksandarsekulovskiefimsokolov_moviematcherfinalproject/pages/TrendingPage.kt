@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +62,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.mode
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.Int
 
@@ -168,7 +172,7 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
     var page by remember { mutableIntStateOf(1) }
     val pageUp = {page += 1}
     val pageDown = {page -= 1}
-    val placeHolderMovie = MovieDB("", "", "", "", 1.2, "", "", 1)
+    val placeHolderMovie = MovieDB("", "", "", "", 1.2, "", "", 1, favorite = false)
     var currentMovie by remember { mutableStateOf<MovieDB>(placeHolderMovie) }
     var detailsView by remember { mutableStateOf(false) }
     val setCurrentMovie: (MovieDB) -> Unit = {
@@ -229,7 +233,9 @@ fun ImagePreview(){
 
 @Composable
 fun MovieDetails(movie: MovieDB, closeDetails: () -> Unit) {
-
+    val context = LocalContext.current
+    val db = DatabaseProvider.getDatabase(context)
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -239,6 +245,26 @@ fun MovieDetails(movie: MovieDB, closeDetails: () -> Unit) {
         IconButton(onClick = closeDetails, modifier = Modifier.align(Alignment.TopEnd).padding(top = 15.dp)) {
             Icon(
                 imageVector = Icons.Filled.Close,
+                contentDescription = "Add Movie",
+                modifier = Modifier.size(35.dp),
+                tint = Color.White
+            )
+        }
+        IconButton(onClick = {
+            if (movie.favorite){
+                coroutineScope.launch {
+                    db.movieDao().setUnFavorite(movie.id)
+                }
+            }
+            else{
+                coroutineScope.launch {
+                    db.movieDao().setFavorite(movie.id)
+                }
+            }
+
+        }, modifier = Modifier.align(Alignment.TopStart).padding(top = 15.dp)) {
+            Icon(
+                imageVector = if (!movie.favorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
                 contentDescription = "Add Movie",
                 modifier = Modifier.size(35.dp),
                 tint = Color.White
