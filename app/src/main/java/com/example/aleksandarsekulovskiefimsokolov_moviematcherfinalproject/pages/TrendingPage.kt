@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -95,7 +96,13 @@ fun TrendingCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: In
 
 
 @Composable
-fun TrendingItem(movie: MovieDB, modifier: Modifier = Modifier, setCurrentMovie: (MovieDB) -> Unit) {
+fun TrendingItem(movie: MovieDB, modifier: Modifier = Modifier, setCurrentMovie: (MovieDB) -> Unit,
+                 favorites: Set<MovieDB>,
+                 setFavorite: (MovieDB) -> Unit,
+                 setUnFavorite: (MovieDB) -> Unit) {
+    val context = LocalContext.current
+    val db = DatabaseProvider.getDatabase(context)
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = modifier
             .padding(8.dp)
@@ -112,6 +119,28 @@ fun TrendingItem(movie: MovieDB, modifier: Modifier = Modifier, setCurrentMovie:
             modifier = Modifier.aspectRatio(0.75f).height(250.dp).clip(RectangleShape),
             loading = { CircularProgressIndicator() },
         )
+        IconButton(onClick = {
+            if (favorites.contains(movie)){
+                coroutineScope.launch {
+                    db.movieDao().setUnFavorite(movie.id)
+                }
+                setUnFavorite(movie)
+            }
+            else{
+                coroutineScope.launch {
+                    db.movieDao().setFavorite(movie.id)
+                }
+                setFavorite(movie)
+            }
+
+        }, modifier = Modifier.align(Alignment.TopStart).padding(top = 2.dp, start = 5.dp)) {
+            Icon(
+                imageVector = if (favorites.contains(movie)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                contentDescription = "Add Movie",
+                modifier = Modifier.size(35.dp),
+                tint = Color.White
+            )
+        }
         Row(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp)) {
             Icon(imageVector = Icons.Filled.Star, contentDescription = "", tint = Color.White)
             Text(
@@ -130,14 +159,20 @@ fun TrendingItem(movie: MovieDB, modifier: Modifier = Modifier, setCurrentMovie:
     }
 }
 @Composable
-fun TrendingContent(movies: List<MovieDB>, setCurrentMovie: (MovieDB) -> Unit) {
+fun TrendingContent(movies: List<MovieDB>, setCurrentMovie: (MovieDB) -> Unit,
+                    favorites: Set<MovieDB>,
+                    setFavorite: (MovieDB) -> Unit,
+                    setUnFavorite: (MovieDB) -> Unit) {
     LazyColumn(
         Modifier.padding(bottom = 50.dp)
     ) {
         items(movies.chunked(2)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 it.forEach { movieIndex ->
-                    TrendingItem(movieIndex, setCurrentMovie = setCurrentMovie)
+                    TrendingItem(movieIndex, setCurrentMovie = setCurrentMovie,
+                        favorites = favorites,
+                        setFavorite = setFavorite,
+                        setUnFavorite = setUnFavorite)
                 }
             }
         }
@@ -147,7 +182,10 @@ fun TrendingContent(movies: List<MovieDB>, setCurrentMovie: (MovieDB) -> Unit) {
 
 @Composable
 fun Trending(setCurrentMovie: (MovieDB) -> Unit, navController: NavController,
-            pageUp: () -> Unit, pageDown: () -> Unit, movies: List<MovieDB>, page: Int){
+            pageUp: () -> Unit, pageDown: () -> Unit, movies: List<MovieDB>, page: Int,
+             favorites: Set<MovieDB>,
+             setFavorite: (MovieDB) -> Unit,
+             setUnFavorite: (MovieDB) -> Unit){
     Box(
         modifier = Modifier.fillMaxSize()
     ){
@@ -158,7 +196,9 @@ fun Trending(setCurrentMovie: (MovieDB) -> Unit, navController: NavController,
                 leftButtonHandler = pageDown,
                 rightButtonHandler = pageUp
             )
-            TrendingContent(movies, setCurrentMovie = setCurrentMovie)
+            TrendingContent(movies, setCurrentMovie = setCurrentMovie,  favorites = favorites,
+            setFavorite = setFavorite,
+            setUnFavorite = setUnFavorite)
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -181,9 +221,22 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
     }
     val closeDetails = { detailsView = false }
 
-    var movies by remember { mutableStateOf<List<MovieDB>>(emptyList()) }
     val context = LocalContext.current
     val db = DatabaseProvider.getDatabase(context)
+
+    var favorites by remember { mutableStateOf<Set<MovieDB>>(sampleMovies.toSet()) }
+    val setFavorite: (MovieDB) -> Unit = {favorites = favorites + it}
+    val setUnFavorite: (MovieDB) -> Unit = { movie ->
+        favorites = favorites.filter {
+            it != movie
+        }.toSet()
+    }
+
+    LaunchedEffect(Unit) {
+        favorites = db.movieDao().getFavorites().toSet()
+    }
+
+    var movies by remember { mutableStateOf<List<MovieDB>>(emptyList()) }
     LaunchedEffect(page) {
         movies = withContext(Dispatchers.IO) {
             db.movieDao().getMoviesByPage(page)
@@ -203,10 +256,20 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
             page = page,
             pageUp = pageUp,
             pageDown = pageDown,
-            movies = movies)
+            movies = movies,
+            favorites = favorites,
+            setFavorite = setFavorite,
+            setUnFavorite = setUnFavorite
+        )
     }
     else{
-        MovieDetails(movie = currentMovie, closeDetails = closeDetails)
+        MovieDetails(
+            movie = currentMovie,
+            closeDetails = closeDetails,
+            favorites = favorites,
+            setFavorite = setFavorite,
+            setUnFavorite = setUnFavorite
+        )
     }
 }
 
@@ -232,10 +295,12 @@ fun ImagePreview(){
 
 
 @Composable
-fun MovieDetails(movie: MovieDB, closeDetails: () -> Unit) {
+fun MovieDetails(movie: MovieDB, closeDetails: () -> Unit, favorites: Set<MovieDB>,
+                 setFavorite: (MovieDB) -> Unit, setUnFavorite: (MovieDB) -> Unit ) {
     val context = LocalContext.current
     val db = DatabaseProvider.getDatabase(context)
     val coroutineScope = rememberCoroutineScope()
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -251,20 +316,22 @@ fun MovieDetails(movie: MovieDB, closeDetails: () -> Unit) {
             )
         }
         IconButton(onClick = {
-            if (movie.favorite){
+            if (favorites.contains(movie)){
                 coroutineScope.launch {
                     db.movieDao().setUnFavorite(movie.id)
                 }
+                setUnFavorite(movie)
             }
             else{
                 coroutineScope.launch {
                     db.movieDao().setFavorite(movie.id)
                 }
+                setFavorite(movie)
             }
 
         }, modifier = Modifier.align(Alignment.TopStart).padding(top = 15.dp)) {
             Icon(
-                imageVector = if (!movie.favorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                imageVector = if (favorites.contains(movie)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Add Movie",
                 modifier = Modifier.size(35.dp),
                 tint = Color.White

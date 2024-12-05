@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,6 +48,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.mode
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.openjdk.tools.javac.jvm.Profile
 
@@ -96,13 +98,28 @@ fun ProfileScreen(user: User, navController: NavController) {
     var username by rememberSaveable { mutableStateOf(user.username) }
     var favoriteGenre by rememberSaveable { mutableStateOf(user.favoriteGenre) }
 
-    var movies by remember { mutableStateOf<List<MovieDB>>(emptyList()) }
+    var favorites by remember { mutableStateOf<Set<MovieDB>>(sampleMovies.toSet()) }
+    val setFavorite: (MovieDB) -> Unit = {favorites = favorites + it}
+    val setUnFavorite: (MovieDB) -> Unit = { movie ->
+        favorites = favorites.filter {
+            it != movie
+        }.toSet()
+    }
+
+    var detailsView by remember { mutableStateOf(false) }
+    val placeHolderMovie = MovieDB("", "", "", "", 1.2, "", "", 1, favorite = false)
+    var currentMovie by remember { mutableStateOf<MovieDB>(placeHolderMovie) }
+    val setCurrentMovie: (MovieDB) -> Unit = {
+        currentMovie = it
+        detailsView = true
+    }
+    val closeDetails = { detailsView = false }
+
     val context = LocalContext.current
     val db = DatabaseProvider.getDatabase(context)
+
     LaunchedEffect(Unit) {
-        movies = withContext(Dispatchers.IO) {
-            db.movieDao().getFavorites()
-        }
+        favorites = db.movieDao().getFavorites().toSet()
     }
 
     val onSubmit: (User) -> Unit = {
@@ -113,7 +130,7 @@ fun ProfileScreen(user: User, navController: NavController) {
     }
 
     val flipEdit = {editInProgress = !editInProgress}
-    if (!editInProgress){
+    if (!editInProgress && !detailsView){
         Box {
             Column(
                 modifier = Modifier
@@ -188,11 +205,16 @@ fun ProfileScreen(user: User, navController: NavController) {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(movies.chunked(3)) {
+                    items(favorites.chunked(3)) {
                         Row(modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             it.forEach { movieIndex ->
-                                MovieItem(movieIndex)
+                                MovieItem(
+                                    movieIndex,
+                                    favorites = favorites,
+                                    setFavorite = setFavorite,
+                                    setUnFavorite = setUnFavorite,
+                                    setCurrentMovie = setCurrentMovie)
                             }
                         }
                     }
@@ -200,6 +222,15 @@ fun ProfileScreen(user: User, navController: NavController) {
             }
             FooterNavigation(navController = navController, modifier = Modifier.align(Alignment.BottomCenter))
         }
+    }
+    else if (detailsView){
+        MovieDetails(
+            movie = currentMovie,
+            closeDetails = closeDetails,
+            favorites = favorites,
+            setFavorite = setFavorite,
+            setUnFavorite = setUnFavorite
+        )
     }
     else{
         ProfileEdit(
@@ -234,7 +265,9 @@ fun ProfileEdit(
                 onSubmit(user)
                 flipEdit()
             },
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 5.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 20.dp, end = 5.dp)
         ) {
             Icon(
                 imageVector = Icons.Filled.Close,
@@ -371,31 +404,68 @@ fun ProfileEdit(
 
 
 @Composable
-fun MovieItem(movie: MovieDB) {
+fun MovieItem(movie: MovieDB,
+              favorites: Set<MovieDB>,
+              setFavorite: (MovieDB) -> Unit,
+              setUnFavorite: (MovieDB) -> Unit,
+              setCurrentMovie: (MovieDB) -> Unit) {
+
+    val context = LocalContext.current
+    val db = DatabaseProvider.getDatabase(context)
+    val coroutineScope = rememberCoroutineScope()
+
+
     Column(
         modifier = Modifier
             .width(120.dp)
     ) {
-        SubcomposeAsyncImage(
-            model = "${base_url}${movie.poster}",
-            contentDescription = movie.title,
-            modifier = Modifier
-                .height(180.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            loading = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Gray)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.primary
-                    )
+        Box {
+            SubcomposeAsyncImage(
+                model = "${base_url}${movie.poster}",
+                contentDescription = movie.title,
+                modifier = Modifier
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        setCurrentMovie(movie)
+                    },
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Gray)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                contentScale = ContentScale.Crop
+            )
+            IconButton(onClick = {
+                if (favorites.contains(movie)){
+                    coroutineScope.launch {
+                        db.movieDao().setUnFavorite(movie.id)
+                    }
+                    setUnFavorite(movie)
                 }
-            },
-            contentScale = ContentScale.Crop
-        )
+                else{
+                    coroutineScope.launch {
+                        db.movieDao().setFavorite(movie.id)
+                    }
+                    setFavorite(movie)
+                }
+
+            }, modifier = Modifier.align(Alignment.TopStart).padding(top = 2.dp, start = 2.dp)) {
+                Icon(
+                    imageVector = if (favorites.contains(movie)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = "Add Movie",
+                    modifier = Modifier.size(35.dp),
+                    tint = Color.White
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = movie.title,
