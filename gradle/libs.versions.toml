@@ -6,6 +6,7 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+ktorClientJava = "KTOR_VERSION"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.04.01"
@@ -55,6 +56,8 @@ androidx-storage = { group = "androidx.test.services", name = "storage", version
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
+ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktorClientJava" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
 

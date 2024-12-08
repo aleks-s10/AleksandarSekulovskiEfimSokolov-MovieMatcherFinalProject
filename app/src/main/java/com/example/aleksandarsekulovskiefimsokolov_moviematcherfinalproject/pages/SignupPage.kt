@@ -42,6 +42,10 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         mutableStateOf("")
     }
 
+    var username by remember {
+        mutableStateOf("")
+    }
+
     var password by remember {
         mutableStateOf("")
     }
@@ -81,6 +85,20 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         )
         Spacer(modifier = Modifier.height(0.dp))
 
+
+        OutlinedTextField(
+            value = username,
+            onValueChange = {
+                username  = it
+            },
+            label = {
+                Text(text = "Username")
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(containerColor = Color.White),
+        )
+
+        Spacer(modifier = Modifier.height(0.dp))
+
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -96,7 +114,7 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(onClick = {
-            authViewModel.signup(email,password)
+            authViewModel.signup(email,password, username)
         },
             enabled = authState.value != AuthState.Loading,
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)

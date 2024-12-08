@@ -116,8 +116,8 @@ fun SearchHeader(
             searchQuery = searchQuery,
             searchLabel = searchLabel,
             changeSearchQuery = {
-            searchQuery = it
-        })
+                searchQuery = it
+            })
 
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -180,53 +180,53 @@ fun TrendingHeader(
 
 @Composable
 fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(color = MaterialTheme.colorScheme.primary),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = { navController.navigate("Trending")},
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(color = MaterialTheme.colorScheme.primary),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = { navController.navigate("Trending")},
 //                modifier = Modifier.padding(bottom = 5.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Home,
-                    contentDescription = "Trending",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            IconButton(
-                onClick = { navController.navigate("friends") }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Face,
-                    contentDescription = "friends",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            IconButton(
-                onClick = { navController.navigate("groups") }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Share,
-                    contentDescription = "groups",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            IconButton(
-                onClick = { navController.navigate("profile") }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Person,
-                    contentDescription = "Profile",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Home,
+                contentDescription = "Trending",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        IconButton(
+            onClick = { navController.navigate("friends") }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Face,
+                contentDescription = "friends",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        IconButton(
+            onClick = { navController.navigate("groups") }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Share,
+                contentDescription = "groups",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+        IconButton(
+            onClick = { navController.navigate("profile") }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Person,
+                contentDescription = "Profile",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
+}
 
 //
 //@Preview(showBackground = true)
@@ -237,4 +237,3 @@ fun FooterNavigation(modifier: Modifier = Modifier, navController: NavController
 //    }
 //}
 //
-

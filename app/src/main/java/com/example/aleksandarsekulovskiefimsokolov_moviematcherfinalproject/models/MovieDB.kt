@@ -15,3 +15,4 @@ data class MovieDB(
     val page: Int,
     val favorite: Boolean
 )
+
