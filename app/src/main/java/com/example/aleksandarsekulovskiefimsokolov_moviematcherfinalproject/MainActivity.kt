@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity(), ImageLoaderFactory{
         analytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val authViewModel: AuthViewModel by viewModels()
         val db = Firebase.firestore
+        val authViewModel: AuthViewModel by viewModels()
         setContent {
             AleksandarSekulovskiEfimSokolovMovieMatcherFinalProjectTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

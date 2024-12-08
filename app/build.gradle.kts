@@ -97,4 +97,13 @@ dependencies {
     ksp("com.google.dagger:dagger-compiler:2.51.1")
 
     implementation("com.android.tools:desugar_jdk_libs:2.0.3")
+
+    implementation("com.algolia:algoliasearch-client-kotlin:3.10.1")
+
+    implementation("io.ktor:ktor-client-core:3.0.0")        // Core client
+    implementation("io.ktor:ktor-client-okhttp:3.0.0")    // Android engine
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0") // Optional if needed
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")  // Optional for JSON support
+    implementation("io.ktor:ktor-client-logging:3.0.0")   // Optional for logging
+    implementation("io.ktor:ktor-client-plugins:3.0.0")
 }

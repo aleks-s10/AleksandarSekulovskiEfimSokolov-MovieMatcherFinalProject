@@ -2,6 +2,7 @@ package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pag
 
 
 import android.graphics.Movie
+import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,6 +91,47 @@ val genres = listOf(
     "Animation"
 )
 
+fun updateUserInfo(
+    userId: String,
+    Movies: List<String>? = null,
+    Profile_Picture: String? = null,
+    Sessions: List<String>? = null,
+    email: String? = null,
+    username: String? = null,
+    firstName: String? = null,
+    lastName: String? = null,
+    favoriteGenre: String? = null
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    // Create a map of fields to update
+    val updateData = mutableMapOf<String, Any>()
+
+    // Add only non-null fields to the map
+    Movies?.let { updateData["Movies"] = it }
+    Profile_Picture?.let { updateData["Profile_Picture"] = it }
+    Sessions?.let { updateData["Sessions"] = it }
+    email?.let { updateData["email"] = it }
+    username?.let { updateData["username"] = it }
+    firstName?.let { updateData["firstName"] = it }
+    lastName?.let { updateData["lastName"] = it }
+    favoriteGenre?.let { updateData["favoriteGenre"] = it }
+
+    // Perform Firestore update only if there is data to update
+    if (updateData.isNotEmpty()) {
+        db.collection("users").document(userId)
+            .update(updateData)
+            .addOnSuccessListener {
+                Log.d("FIRESTORE", "User data updated successfully for ID: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e("FIRESTORE", "Error updating user data", e)
+            }
+    } else {
+        Log.w("FIRESTORE", "No data provided for update")
+    }
+}
+
 @Composable
 fun ProfileScreen(user: User, navController: NavController) {
     var editInProgress by remember { mutableStateOf(false) }
@@ -125,8 +168,13 @@ fun ProfileScreen(user: User, navController: NavController) {
     val onSubmit: (User) -> Unit = {
         firstName = it.firstName
         lastName = it.lastName
-        username = it.username
         favoriteGenre = it.favoriteGenre
+        updateUserInfo(
+            userId = user.username,
+            firstName = it.firstName,
+            lastName = it.lastName,
+            favoriteGenre = it.favoriteGenre
+        )
     }
 
     val flipEdit = {editInProgress = !editInProgress}
@@ -154,18 +202,6 @@ fun ProfileScreen(user: User, navController: NavController) {
                             text = "$firstName $lastName",
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Username",
-                                tint = Color.DarkGray
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "@$username",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
                     }
                     Spacer(modifier = Modifier.width(110.dp))
                     IconButton(
