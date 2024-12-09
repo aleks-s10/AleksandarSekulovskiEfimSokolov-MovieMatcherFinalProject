@@ -5,6 +5,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.room.util.EMPTY_STRING_ARRAY
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirestoreUsersDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.google.firebase.Firebase
@@ -12,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlin.String
+import kotlin.collections.listOf
 
 class AuthViewModel : ViewModel() {
     private val auth : FirebaseAuth = FirebaseAuth.getInstance()
@@ -52,13 +54,37 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+    fun checkUserInfoInFirestore(
+        Username: String
+    ): Boolean {
+
+        var worked = true
+
+        val db = FirebaseFirestore.getInstance()
+        // Check if the username already exists
+        db.collection("users")
+            .whereEqualTo("Username", Username)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    worked = false
+                    // Username exists, log error
+                    Log.e("FIRESTORE", "Error: Username already exists")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("FIRESTORE", "Error checking username existence", e)
+            }
+        return worked
+    }
+
     fun saveUserInfoToFirestore(
         id: String,
-        Movies: List<String>? = null,
-        Profile_Picture: String = "",
-        Sessions: List<String>? = null,
+        Movies: List<String>,
+        Profile_Picture: Int = 0,
+        Sessions: List<String>,
         email: String,
-        username: String = "",
+        Username: String = "",
         firstName: String = "",
         lastName: String = "",
         favGenre: String = ""
@@ -69,10 +95,10 @@ class AuthViewModel : ViewModel() {
                 Profile_Picture = Profile_Picture,
                 Sessions = Sessions,
                 email = email,
-                username = "",
-                FirstName = "",
-                LastName = "",
-                favGenre = ""
+                Username = Username,
+                FirstName = firstName,
+                LastName = lastName,
+                favGenre = favGenre
             )
 
             val data = hashMapOf(
@@ -81,31 +107,19 @@ class AuthViewModel : ViewModel() {
                 "Profile_Picture" to user.Profile_Picture,
                 "Sessions" to user.Sessions,
                 "email" to user.email,
-                "username" to user.username,
+                "Username" to user.Username,
                 "FirstName" to user.FirstName,
                 "LastName" to user.LastName,
                 "favGenre" to user.favGenre
             )
-            var worked = false
+            var worked = true
 
             val db = FirebaseFirestore.getInstance()
-            // Check if the username already exists
-            db.collection("users")
-                .whereEqualTo("username", username)
-                .get()
-                .addOnSuccessListener { documents ->
-                    if (documents.isEmpty) {
-                        // Username does not exist, save user data
-                        db.collection("users").document(user.id)
-                            .set(data)
-                        worked = true
-                    } else {
-                        // Username exists, log error
-                        Log.e("FIRESTORE", "Error: Username already exists")
-                    }
-                }
+            db.collection("users").document(user.id)
+                .set(data)
                 .addOnFailureListener { e ->
                     Log.e("FIRESTORE", "Error checking username existence", e)
+                    worked = false
                 }
         return worked
     }
@@ -117,16 +131,8 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        if (saveUserInfoToFirestore(
-            id = email,
-            Movies = null,
-            Profile_Picture = "",
-            Sessions = null,
-            email = email,
-            username = email,
-            firstName = "",
-            lastName = "",
-            favGenre = ""
+        if (checkUserInfoInFirestore(
+                Username = username,
         )) {
             _authState.value = AuthState.Loading
             auth.createUserWithEmailAndPassword(email, password)
@@ -134,11 +140,14 @@ class AuthViewModel : ViewModel() {
                     if (task.isSuccessful) {
                         saveUserInfoToFirestore(
                             id = email,
-                            Movies = null,
-                            Profile_Picture = "",
-                            Sessions = null,
+                            Movies = listOf(),
+                            Profile_Picture = 0,
+                            Sessions = listOf(),
                             email = email,
-                            username = email,
+                            Username = username,
+                            firstName = "",
+                            lastName = "",
+                            favGenre = ""
                         )
                         _authState.value = AuthState.Authenticated
                     } else {

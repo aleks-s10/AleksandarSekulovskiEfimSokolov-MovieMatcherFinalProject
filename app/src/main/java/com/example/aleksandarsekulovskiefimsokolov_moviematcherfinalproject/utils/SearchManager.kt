@@ -19,6 +19,8 @@ class SearchManager {
                 )
                 println("Search results: ${response}")
                 println("Search results: ${response.hits}")
+                println("Search results: ${response.hits.toList()}")
+
                 response.hits.toList()
             } catch (e: Exception) {
                 println("Search error: ${e.message}")

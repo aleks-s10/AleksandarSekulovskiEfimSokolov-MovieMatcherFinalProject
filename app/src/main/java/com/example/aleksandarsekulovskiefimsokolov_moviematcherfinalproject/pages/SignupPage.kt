@@ -115,6 +115,9 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
 
         OutlinedButton(onClick = {
             authViewModel.signup(email,password, username)
+            email = ""
+            password = ""
+            username = ""
         },
             enabled = authState.value != AuthState.Loading,
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)

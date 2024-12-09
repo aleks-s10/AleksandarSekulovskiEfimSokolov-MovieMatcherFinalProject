@@ -3,10 +3,10 @@ package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.mod
 data class FirestoreUsersDB (
         val id: String,
         val Movies: List<String>?,
-        val Profile_Picture: String,
+        val Profile_Picture: Int,
         val Sessions: List<String>?,
         val email: String,
-        val username: String,
+        val Username: String,
         val FirstName: String,
         val LastName: String,
         val favGenre: String
