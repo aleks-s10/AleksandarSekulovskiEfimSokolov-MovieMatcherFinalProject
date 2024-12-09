@@ -30,6 +30,8 @@ import coil.ImageLoaderFactory
 import coil.util.DebugLogger
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieAPI
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.saveMoviesToFirestore
 import com.google.firebase.firestore.firestore
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -53,6 +55,19 @@ class MainActivity : ComponentActivity(), ImageLoaderFactory{
                         modifier = Modifier.padding(innerPadding),
                         authViewModel = authViewModel
                     )
+//                    val context = LocalContext.current
+//                    val scope = rememberCoroutineScope()
+//
+//                    LaunchedEffect(key1 = true) {
+//                        scope.launch(Dispatchers.IO) {
+//                            println("HIT THIS PART")
+//                            saveMoviesToFirestore(context, 1)
+//                            saveMoviesToFirestore(context, 2)
+//                            saveMoviesToFirestore(context, 3)
+//                            saveMoviesToFirestore(context, 4)
+//                            saveMoviesToFirestore(context, 5)
+//                        }
+//                    }
                 }
             }
         }

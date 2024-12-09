@@ -35,7 +35,7 @@ fun Homepage(modifier : Modifier = Modifier, navController: NavController, authV
         Text(text = "Sign out", fontSize = 32.sp)
 
         TextButton(onClick = {
-            authViewModel.signout()
+            authViewModel.signout(navController)
         }) {
             Text(text = "Sign out")
         }

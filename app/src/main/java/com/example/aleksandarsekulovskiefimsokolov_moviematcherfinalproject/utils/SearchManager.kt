@@ -1,7 +1,7 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils
 
 import com.algolia.client.api.SearchClient
-import com.algolia.client.model.search.FacetFilters
+import com.algolia.client.model.search.*
 import com.algolia.client.model.search.SearchParamsObject
 
 class SearchManager {
@@ -9,22 +9,28 @@ class SearchManager {
     private val apiKey = "ca9c08efd5997d552f077269757dd817"
     private val client = SearchClient(appID, apiKey)
 
-    suspend fun searchUsers(query: String, indexName: String) {
-            try {
-                var response = client.searchSingleIndex(
-                    indexName = indexName,
-                    searchParams = SearchParamsObject(
-                        query = query,
-                    ),
-                )
-                println("Search results: ${response}")
-                println("Search results: ${response.hits}")
-                println("Search results: ${response.hits.toList()}")
-
-                response.hits.toList()
-            } catch (e: Exception) {
-                println("Search error: ${e.message}")
-                emptyList()
-            }
+    suspend fun searchUsers(query: String, indexName: String): List<Hit> {
+        var response = emptyList<Hit>()
+        try {
+            response = client.searchSingleIndex(
+                indexName = indexName,
+                searchParams = SearchParamsObject(
+                    query = query,
+                ),
+            ).hits
+            println("Search results: ${response}")
+        } catch (e: Exception) {
+            println("Search error: ${e.message}")
         }
+        if (response.isNotEmpty()) {
+            for (hit in response) {
+                val additionalProperties = hit.additionalProperties
+                println("Additional Properties: $additionalProperties")
+                println("Username: ${additionalProperties?.get("Username")}")
+            }
+        } else {
+            println("No search results found.")
+        }
+        return response
+    }
 }

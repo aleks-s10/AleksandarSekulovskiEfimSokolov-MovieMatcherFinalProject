@@ -5,6 +5,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import androidx.room.util.EMPTY_STRING_ARRAY
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirestoreUsersDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
@@ -164,9 +165,11 @@ class AuthViewModel : ViewModel() {
     }
 
 
-    fun signout(){
+    fun signout(navController: NavController){
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
+        currentUser = ""
+        navController.navigate("login")
     }
 
 }
