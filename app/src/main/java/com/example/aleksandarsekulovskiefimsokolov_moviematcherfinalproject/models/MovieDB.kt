@@ -15,7 +15,7 @@ data class MovieDB(
     val release_year: String,
     val title: String,
     val page: Int,
-    val favorite: Boolean
+    val favorite: Boolean,
 )
 
 @Entity(tableName = "users")

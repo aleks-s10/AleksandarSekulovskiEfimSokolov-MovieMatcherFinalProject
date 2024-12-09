@@ -78,7 +78,7 @@ fun FriendsPage(modifier : Modifier = Modifier, navController: NavController, au
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
-            searchManager.searchUsers("efi", "algoliaUsers")
+            searchManager.searchUsers("aleks", "algoliaUsers")
         }
     }
 
