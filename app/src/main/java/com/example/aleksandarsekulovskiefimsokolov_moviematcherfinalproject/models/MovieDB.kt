@@ -2,6 +2,8 @@ package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.mod
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 
 @Entity(tableName = "movies")
 data class MovieDB(
@@ -17,12 +19,13 @@ data class MovieDB(
 )
 
 @Entity(tableName = "users")
-data class User(
+@TypeConverters(Converters::class)
+data class UserDB(
     @PrimaryKey val userID: String,
     val userName: String,
     val profilePicture: Int,
-    val movies: String,
-    val sessions: String,
+    val movies: List<String>,
+    val sessions: List<String>,
     val email: String,
     val firstName: String,
     val lastName: String,
@@ -32,3 +35,15 @@ data class User(
 )
 
 
+class Converters {
+
+    @TypeConverter
+    fun listToString(input: List<String>): String {
+        return input.joinToString(separator = "@")
+    }
+    @TypeConverter
+    fun stringToList(input: String): List<String> {
+        return input.split("@")
+    }
+
+}
