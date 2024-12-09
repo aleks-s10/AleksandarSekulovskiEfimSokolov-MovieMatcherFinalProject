@@ -24,4 +24,17 @@ interface MovieDao {
 
     @Query("UPDATE movies SET favorite = 0 WHERE id == :id")
     suspend fun setUnFavorite(id: String): Unit
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUser(movies: User)
+
+    @Query("SELECT * FROM users where self == 1")
+    suspend fun getSelf(): User
+
+    @Query("SELECT * FROM users where pending == 0")
+    suspend fun getFriends(): List<User>
+
+    @Query("SELECT * FROM users where pending == 1")
+    suspend fun getPending(): List<User>
+
 }

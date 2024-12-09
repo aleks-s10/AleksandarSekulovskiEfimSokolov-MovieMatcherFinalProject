@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +34,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthState
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.User
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,8 +54,28 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         mutableStateOf("")
     }
 
+    var firstName by remember {
+        mutableStateOf("")
+    }
+    var lastName by remember {
+        mutableStateOf("")
+    }
+
+    var favoriteGenre by remember {
+        mutableStateOf("")
+    }
+
+
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val db = DatabaseProvider.getDatabase(context)
+
+    val addSelfToDB: (User) -> Unit = {
+        coroutineScope.launch {
+            db.movieDao().insertUser(it)
+        }
+    }
 
     LaunchedEffect(authState.value) {
         when(authState.value){
@@ -60,7 +84,6 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
                 (authState.value as AuthState.Error).message,Toast.LENGTH_SHORT).show()
             else -> Unit
         }
-
     }
 
 
@@ -128,6 +151,15 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(onClick = {
+//            addSelfToDB(
+//                User(
+//                    userID = email,
+//                    userName = username,
+//                    email = email,
+//                    profilePicture = 0,
+//                    movies =
+//                )
+//            )
             navController.navigate("login")
         }) {
             Text(text = "Already have an account? Login!")

@@ -16,3 +16,19 @@ data class MovieDB(
     val favorite: Boolean
 )
 
+@Entity(tableName = "users")
+data class User(
+    @PrimaryKey val userID: String,
+    val userName: String,
+    val profilePicture: Int,
+    val movies: String,
+    val sessions: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String,
+    val favoriteGenre: String,
+    val pending: Boolean,
+    val self: Boolean
+)
+
+
