@@ -31,7 +31,7 @@ data class UserDB(
     val lastName: String,
     val favoriteGenre: String,
     val pending: Boolean,
-    val self: Boolean
+    val self: Int,
 )
 
 

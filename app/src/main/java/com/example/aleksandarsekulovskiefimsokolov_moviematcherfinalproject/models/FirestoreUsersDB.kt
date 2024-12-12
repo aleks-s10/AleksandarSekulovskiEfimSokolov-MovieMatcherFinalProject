@@ -9,5 +9,6 @@ data class FirestoreUsersDB (
         val Username: String,
         val FirstName: String,
         val LastName: String,
-        val favGenre: String
+        val favGenre: String,
+        val Friends: List<String>?,
 )

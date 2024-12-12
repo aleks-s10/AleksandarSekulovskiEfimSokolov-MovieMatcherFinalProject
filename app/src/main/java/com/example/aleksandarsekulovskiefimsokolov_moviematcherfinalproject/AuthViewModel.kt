@@ -88,7 +88,8 @@ class AuthViewModel : ViewModel() {
         Username: String = "",
         firstName: String = "",
         lastName: String = "",
-        favGenre: String = ""
+        favGenre: String = "",
+        Friends:  List<String>,
     ): Boolean {
             val user = FirestoreUsersDB(
                 id = id,
@@ -99,7 +100,8 @@ class AuthViewModel : ViewModel() {
                 Username = Username,
                 FirstName = firstName,
                 LastName = lastName,
-                favGenre = favGenre
+                favGenre = favGenre,
+                Friends = Friends
             )
 
             val data = hashMapOf(
@@ -111,7 +113,8 @@ class AuthViewModel : ViewModel() {
                 "Username" to user.Username,
                 "FirstName" to user.FirstName,
                 "LastName" to user.LastName,
-                "favGenre" to user.favGenre
+                "favGenre" to user.favGenre,
+                "Friends" to user.Friends
             )
             var worked = true
 
@@ -154,9 +157,11 @@ class AuthViewModel : ViewModel() {
                             Sessions = listOf(),
                             email = email,
                             Username = username,
-                            firstName = firstName,
-                            lastName = lastName,
-                            favGenre = favoriteGenre
+                            firstName = "",
+                            lastName = "",
+                            favGenre = "",
+                            Friends = listOf()
+
                         )
                         _authState.value = AuthState.Authenticated
                     } else {
