@@ -1,5 +1,6 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,10 +39,14 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.Auth
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.User
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
 fun LoginPage(
     modifier: Modifier = Modifier,
@@ -54,13 +59,13 @@ fun LoginPage(
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val db = DatabaseProvider.getDatabase(context)
 
     LaunchedEffect(authState.value) {
         // Fetch and store movies from the API
         fetchAndStoreMovies(context, 1)
 
         // Retrieve movies from the database
-        val db = DatabaseProvider.getDatabase(context)
         movies = withContext(Dispatchers.IO) {
             db.movieDao().getAllMovies()
         }
@@ -104,7 +109,82 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(
-            onClick = { authViewModel.login(email, password) },
+            onClick = { authViewModel.login(email, password);
+                kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                    val dbFire = FirebaseFirestore.getInstance()
+                    var user = User(email, "", 0, "", "", "", "", "", "", false, 0)
+                    var localFriends : List<User> = listOf()
+                    // Check if the username already exists
+                    dbFire.collection("users").document(email)
+                        .get()
+                        .addOnSuccessListener { document ->
+                            if (document.exists()) {
+                                user = User(
+                                    userID = document.id,
+                                    userName = document.getString("Username") ?: "Unknown",
+                                    profilePicture = document.getLong("ProfilePicture")?.toInt()
+                                        ?: 0,
+                                    movies = document.getString("Movies") ?: "None",
+                                    sessions = document.getString("Sessions") ?: "None",
+                                    email = document.getString("Email") ?: "Unknown",
+                                    firstName = document.getString("FirstName") ?: "Unknown",
+                                    lastName = document.getString("LastName") ?: "Unknown",
+                                    favoriteGenre = document.getString("FavoriteGenre")
+                                        ?: "Unknown",
+                                    pending = document.getBoolean("Pending") ?: false,
+                                    self = 1
+                                )
+                                val friendsList = document.get("Friends") as? List<String>
+                                // Or use forEach for cleaner syntax
+                                var friend = User("", "", 0, "", "", "", "", "", "", false, 0)
+
+                                friendsList?.forEach {
+                                    dbFire.collection("users").document(it)
+                                        .get()
+                                        .addOnSuccessListener { document ->
+                                            if (document.exists()) {
+                                                friend = User(
+                                                    userID = document.id,
+                                                    userName = document.getString("Username")
+                                                        ?: "Unknown",
+                                                    profilePicture = document.getLong("ProfilePicture")
+                                                        ?.toInt()
+                                                        ?: 0,
+                                                    movies = document.getString("Movies") ?: "None",
+                                                    sessions = document.getString("Sessions")
+                                                        ?: "None",
+                                                    email = document.getString("Email")
+                                                        ?: "Unknown",
+                                                    firstName = document.getString("FirstName")
+                                                        ?: "Unknown",
+                                                    lastName = document.getString("LastName")
+                                                        ?: "Unknown",
+                                                    favoriteGenre = document.getString("FavoriteGenre")
+                                                        ?: "Unknown",
+                                                    pending = document.getBoolean("Pending")
+                                                        ?: false,
+                                                    self = 0
+                                                )
+                                                localFriends = localFriends + friend
+                                            }}
+
+                                }
+
+
+                            }}
+                    db.movieDao().insertUser(user)
+
+                    localFriends.forEach { friend ->
+                        db.movieDao().insertUser(friend)
+                    }
+
+                    Log.d("ROOM", "User saved to local DB: ${user.userName}")
+                    dbFire.collection("users").document(email)
+                        .get()
+                }
+
+
+                      },
             enabled = authState.value != AuthState.Loading,
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
         ) {

@@ -106,4 +106,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")  // Optional for JSON support
     implementation("io.ktor:ktor-client-logging:3.0.0")   // Optional for logging
     implementation("io.ktor:ktor-client-plugins:3.0.0")
+
+    implementation("androidx.activity:activity-ktx:1.8.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 }

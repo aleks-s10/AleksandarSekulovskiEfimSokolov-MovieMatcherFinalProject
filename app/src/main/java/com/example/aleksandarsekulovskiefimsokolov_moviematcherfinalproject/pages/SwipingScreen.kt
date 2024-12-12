@@ -43,6 +43,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +55,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,55 +64,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.SubcomposeAsyncImage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import java.util.Locale
 import kotlin.math.roundToInt
 
-val images = arrayOf(
-    R.drawable.transformers,
-    R.drawable.deadpool,
-    R.drawable.mazerunner,
-    R.drawable.moana,
-    R.drawable.wick,
-    R.drawable.venom,
-    R.drawable.joker,
-    R.drawable.minecraft,
-    R.drawable.panda
-    )
-
-val titles = arrayOf(
-    "Transformers One",
-    "Deadpool and Wolverine",
-    "Maze Runner: Scorch Trials",
-    "Moana",
-    "John Wick",
-    "Venom",
-    "The Joker",
-    "The Minecraft Movie",
-    "Kung Fu Panda 3"
-)
-val descriptions = arrayOf(
-    "An origin story exploring the beginnings of Optimus Prime and Megatron as friends before becoming enemies in the Transformers universe.",
-    "The hilarious and action-packed team-up of Deadpool and Wolverine as they navigate a chaotic mission filled with quips and claws.",
-    "A thrilling continuation of the Maze Runner saga where the Gladers face new challenges in a scorching desert full of dangers and secrets.",
-    "A daring young girl sets sail across the ocean to save her people and discovers her true destiny with the help of a demigod.",
-    "A retired hitman seeks vengeance against those who wronged him, unleashing a relentless wave of action and precision.",
-    "A journalist bonds with an alien symbiote, gaining extraordinary powers to fight a dark threat while grappling with his own duality.",
-    "A deep and gritty exploration of the origins of the Joker, diving into the psyche of a troubled individual and his transformation into the iconic villain.",
-    "An epic adventure in the Minecraft universe where characters must build, craft, and survive to protect their world from a looming threat.",
-    "Po and his friends reunite to face a supernatural villain while Po embarks on a journey of self-discovery and learns to master his role as the Dragon Warrior."
+data class FirestoreMovieDB(
+    val id: Int = 0,
+    val description: String = "",
+    val genre: String = "",
+    val poster: String = "",
+    val rating: Double = 0.0,
+    val release_year: String = "",
+    val title: String = ""
 )
 
+// Content takes a movie and displays it
 @Composable
-fun Content(i: Int){
-    val image = painterResource(images[i.mod(images.size)] )
-
-    Image(
+fun Content(movie: FirestoreMovieDB){
+    SubcomposeAsyncImage(
+        model = "${base_url}${movie.poster}",
+        contentDescription = "Current image",
         modifier = Modifier.fillMaxSize(),
-        painter = image,
-        contentDescription = "Current image"
+        contentScale = ContentScale.Crop,
+        loading = { CircularProgressIndicator() },
     )
 }
 
@@ -142,14 +120,12 @@ fun MovieTitleCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: 
     }
 }
 
-
 @Composable
 fun MovieItemCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: Int) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp),
-//            .padding(top = 10.dp, start = 15.dp, end = 15.dp),
+            .padding(top = 10.dp, start = 15.dp, end = 15.dp),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
@@ -170,28 +146,25 @@ fun MovieItemCard(movieTitle: String, modifier: Modifier = Modifier, fontSize: I
     }
 }
 
-
-
 @Composable
-fun MovieItem(movieIndex: Int, modifier: Modifier = Modifier) {
-    val i = movieIndex.mod(images.size)
+fun MovieItem(movie: FirestoreMovieDB, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .padding(8.dp)
             .height(250.dp)
             .aspectRatio(0.75f)
     ) {
-        Image(
-            painter = painterResource(images[i] ),
-            contentDescription = titles[i],
-            contentScale = ContentScale.Crop, // Crop the image to fill the aspect ratio
+        SubcomposeAsyncImage(
+            model = "${base_url}${movie.poster}",
+            contentDescription = movie.title,
             modifier = Modifier
                 .height(250.dp)
-                .aspectRatio(0.75f) // Adjust to make the image more square
-                .clip(RectangleShape)
+                .aspectRatio(0.75f)
+                .clip(RectangleShape),
+            contentScale = ContentScale.Crop
         )
         MovieItemCard(
-            movieTitle = titles[i],
+            movieTitle = movie.title,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .align(Alignment.TopCenter),
@@ -199,24 +172,38 @@ fun MovieItem(movieIndex: Int, modifier: Modifier = Modifier) {
         )
     }
 }
+
 @Composable
-fun MovieList(movies: List<Int>) {
+fun MovieList(movies: List<FirestoreMovieDB>) {
     LazyColumn {
-        items(movies.chunked(2)) {
+        items(movies.chunked(2)) { rowItems ->
             Row(modifier = Modifier.fillMaxWidth()) {
-                it.forEach { movieIndex ->
-                    MovieItem(movieIndex)
+                rowItems.forEach { movie ->
+                    MovieItem(movie)
                 }
             }
         }
     }
 }
 
-
-
-
 @Composable
 fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
+    val db = FirebaseFirestore.getInstance()
+    val moviesState = remember { mutableStateOf<List<FirestoreMovieDB>>(emptyList()) }
+
+    // FETCH 10 MOVIES FROM FIRESTORE
+    LaunchedEffect(Unit) {
+        db.collection("movies")
+            .limit(10)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val loadedMovies = querySnapshot.documents.mapNotNull {
+                    it.toObject(FirestoreMovieDB::class.java)
+                }
+                moviesState.value = loadedMovies
+            }
+    }
+
     var offset by remember { mutableStateOf(0f) }
     var dismissRight by remember { mutableStateOf(false) }
     var dismissLeft by remember { mutableStateOf(false) }
@@ -230,7 +217,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
         i++
     }
     val onSwipeRight: () -> Unit = {
-        liked = liked.toMutableSet().apply { add(i.mod(images.size)) }
+        liked = liked.toMutableSet().apply { add(i.mod(moviesState.value.size)) }
         i++
     }
     val swipeThreshold: Float = 400f
@@ -253,10 +240,19 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
     }
 
     LaunchedEffect(i) {
-        if (i > 0 && i.mod(images.size) == 0){
+        if (moviesState.value.isNotEmpty() && i > 0 && i.mod(moviesState.value.size) == 0){
             preview = true
         }
     }
+
+    if (moviesState.value.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Loading...")
+        }
+        return
+    }
+
+    val currentMovie = moviesState.value[i.mod(moviesState.value.size)]
 
     if (preview){
         Column (modifier = Modifier.fillMaxSize()){
@@ -269,16 +265,16 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 "Back",
                 fontSize = 20.sp
             ) }
-            MovieList(liked.toList())
-
+            MovieList(liked.map { moviesState.value[it] })
         }
     }
     else {
         Box {
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                painter = painterResource(images[(i + 1).mod(images.size)]),
-                contentDescription = "Next image"
+            val nextMovie = moviesState.value[(i+1).mod(moviesState.value.size)]
+            SubcomposeAsyncImage(
+                model = "${base_url}${nextMovie.poster}",
+                contentDescription = "Next image",
+                modifier = Modifier.fillMaxWidth(),
             )
             Box(modifier = Modifier
                 .offset { IntOffset(offset.roundToInt(), 0) }
@@ -286,13 +282,11 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     detectHorizontalDragGestures(onDragEnd = {
                         offset = 0f
                     }) { change, dragAmount ->
-
                         offset += (dragAmount / density) * sensitivityFactor
                         when {
                             offset > swipeThreshold -> {
                                 dismissRight = true
                             }
-
                             offset < -swipeThreshold -> {
                                 dismissLeft = true
                             }
@@ -304,7 +298,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     alpha = 10f - animateFloatAsState(if (dismissRight) 1f else 0f).value,
                     rotationZ = animateFloatAsState(offset / 50).value
                 )) {
-                Content(i)
+                Content(currentMovie)
             }
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -329,25 +323,15 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                         tint = Color.White
                     )
                 }
-//                TextButton(
-//                    onClick = {
-//                        authViewModel.signout()
-//                    },
-//                    modifier = Modifier.align(Alignment.TopStart).padding(top = 15.dp)
-//                ) { Text(
-//                    "Sign out",
-//                    fontSize = 20.sp,
-//                    color = Color.White
-//                ) }
+
                 Column {
                     MovieTitleCard(
                         modifier = Modifier.padding(top = 50.dp),
-                        movieTitle = titles[i.mod(titles.size)],
+                        movieTitle = currentMovie.title,
                         fontSize = 24
                     )
                     MovieTitleCard(
-//                    modifier = Modifier.padding(top =  10.dp),
-                        movieTitle = descriptions[i.mod(titles.size)],
+                        movieTitle = currentMovie.description,
                         fontSize = 20
                     )
                 }
@@ -383,7 +367,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                         Image(
                             modifier = Modifier.size(100.dp),
                             painter = painterResource(R.drawable.thumbsdown),
-                            contentDescription = "Like",
+                            contentDescription = "Dislike",
                         )
                     }
                 }
@@ -391,4 +375,3 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
         }
     }
 }
-
