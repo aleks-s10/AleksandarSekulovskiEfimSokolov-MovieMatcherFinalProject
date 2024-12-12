@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
 import com.google.firebase.firestore.FirebaseFirestore
@@ -57,26 +58,10 @@ import org.openjdk.tools.javac.jvm.Profile
 // Assuming you have a placeholder image resource named 'profile_placeholder' in your drawable folder
 // R.drawable.profile_placeholder
 
-// Data classes
-data class User(
-    val firstName: String,
-    val lastName: String,
-    val username: String,
-    val favoriteGenre: String,
-    val profileImageResId: Int,
-    val recentMovies: List<MovieDB>
-)
 
 val sampleMovies: List<MovieDB> = listOf()
 
-val sampleUser = User(
-    firstName = "John",
-    lastName = "Doe",
-    username = "johndoe123",
-    favoriteGenre = "Science Fiction",
-    profileImageResId = R.drawable.moviepug, // Placeholder image resource
-    recentMovies = sampleMovies
-)
+val profilePicturePlaceholder = R.drawable.moviepug
 
 val genres = listOf(
     "Action",
@@ -133,13 +118,13 @@ fun updateUserInfo(
 }
 
 @Composable
-fun ProfileScreen(user: User, navController: NavController) {
+fun ProfileScreen(navController: NavController) {
     var editInProgress by remember { mutableStateOf(false) }
 
-    var firstName by rememberSaveable { mutableStateOf(user.firstName) }
-    var lastName by rememberSaveable { mutableStateOf(user.lastName) }
-    var username by rememberSaveable { mutableStateOf(user.username) }
-    var favoriteGenre by rememberSaveable { mutableStateOf(user.favoriteGenre) }
+    var firstName by remember { mutableStateOf<String>("") }
+    var lastName by remember { mutableStateOf<String>("")}
+    var username by remember { mutableStateOf<String>("")}
+    var favoriteGenre by remember { mutableStateOf<String>("")}
 
     var favorites by remember { mutableStateOf<Set<MovieDB>>(sampleMovies.toSet()) }
     val setFavorite: (MovieDB) -> Unit = {favorites = favorites + it}
@@ -160,17 +145,24 @@ fun ProfileScreen(user: User, navController: NavController) {
 
     val context = LocalContext.current
     val db = DatabaseProvider.getDatabase(context)
+    var profile by remember {
+        mutableStateOf<UserDB?>(null)
+    }
 
     LaunchedEffect(Unit) {
         favorites = db.movieDao().getFavorites().toSet()
+        profile = db.movieDao().getSelf()
+        firstName = profile!!.firstName
+        lastName = profile!!.lastName
+        favoriteGenre = profile!!.favoriteGenre
     }
 
-    val onSubmit: (User) -> Unit = {
+    val onSubmit: (UserDB) -> Unit = {
         firstName = it.firstName
         lastName = it.lastName
         favoriteGenre = it.favoriteGenre
         updateUserInfo(
-            userId = user.username,
+            userId = it.userName,
             firstName = it.firstName,
             lastName = it.lastName,
             favoriteGenre = it.favoriteGenre
@@ -188,7 +180,7 @@ fun ProfileScreen(user: User, navController: NavController) {
                 Spacer(Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        painter = painterResource(id = user.profileImageResId),
+                        painter = painterResource(id = profilePicturePlaceholder),
                         contentDescription = "Profile Picture",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -271,7 +263,7 @@ fun ProfileScreen(user: User, navController: NavController) {
     else{
         ProfileEdit(
             flipEdit = flipEdit,
-            user = sampleUser,
+            user = profile!!,
             onSubmit = onSubmit
         )
     }
@@ -279,14 +271,14 @@ fun ProfileScreen(user: User, navController: NavController) {
 
 @Composable
 fun ProfileEdit(
-    user: User,
-    onSubmit: (User) -> Unit,
+    user: UserDB,
+    onSubmit: (UserDB) -> Unit,
     flipEdit: () -> Unit
 ) {
 
     var firstName by remember { mutableStateOf(user.firstName) }
     var lastName by remember { mutableStateOf(user.lastName) }
-    var username by remember { mutableStateOf(user.username) }
+    var username by remember { mutableStateOf(user.userName) }
     var favoriteGenre by remember { mutableStateOf(user.favoriteGenre) }
 
     var expanded by remember { mutableStateOf(false) }
@@ -424,7 +416,7 @@ fun ProfileEdit(
                     val updatedUser = user.copy(
                         firstName = firstName,
                         lastName = lastName,
-                        username = username,
+                        userName = username,
                         favoriteGenre = favoriteGenre
                     )
                     onSubmit(updatedUser)
@@ -514,7 +506,7 @@ fun MovieItem(movie: MovieDB,
 
 @Composable
 fun ProfilePage(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel){
-    ProfileScreen(user = sampleUser, navController = navController)
+    ProfileScreen(navController = navController)
 }
 
 //@Preview

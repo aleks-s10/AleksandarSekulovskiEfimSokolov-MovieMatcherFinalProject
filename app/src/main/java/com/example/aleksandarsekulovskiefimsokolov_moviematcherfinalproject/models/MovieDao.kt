@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 
 @Dao
 interface MovieDao {
@@ -26,15 +28,15 @@ interface MovieDao {
     suspend fun setUnFavorite(id: String): Unit
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(movies: User)
+    suspend fun insertUser(movies: UserDB)
 
     @Query("SELECT * FROM users where self == 1")
-    suspend fun getSelf(): User
+    suspend fun getSelf(): UserDB
 
     @Query("SELECT * FROM users where pending == 0")
-    suspend fun getFriends(): List<User>
+    suspend fun getFriends(): List<UserDB>
 
     @Query("SELECT * FROM users where pending == 1")
-    suspend fun getPending(): List<User>
+    suspend fun getPending(): List<UserDB>
 
 }

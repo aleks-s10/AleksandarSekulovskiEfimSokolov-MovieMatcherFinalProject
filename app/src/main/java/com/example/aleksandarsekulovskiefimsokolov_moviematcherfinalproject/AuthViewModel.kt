@@ -128,7 +128,15 @@ class AuthViewModel : ViewModel() {
         return worked
     }
 
-    fun signup(email : String, password : String, username: String) {
+    fun signup(
+        email : String,
+        password : String,
+        username: String,
+        profilePicture: Int,
+        firstName: String,
+        lastName: String,
+        favoriteGenre: String
+    ) {
 
         if (email.isEmpty() || password.isEmpty() || username.isEmpty()) {
             _authState.value = AuthState.Error("Please put values in for all fields")
@@ -145,7 +153,7 @@ class AuthViewModel : ViewModel() {
                         saveUserInfoToFirestore(
                             id = email,
                             Movies = listOf(),
-                            Profile_Picture = 0,
+                            Profile_Picture = profilePicture,
                             Sessions = listOf(),
                             email = email,
                             Username = username,
@@ -153,6 +161,7 @@ class AuthViewModel : ViewModel() {
                             lastName = "",
                             favGenre = "",
                             Friends = listOf()
+
                         )
                         _authState.value = AuthState.Authenticated
                     } else {
