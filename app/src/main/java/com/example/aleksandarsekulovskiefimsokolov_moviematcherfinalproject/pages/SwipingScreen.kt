@@ -69,20 +69,12 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.Auth
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
-import java.util.Locale
 import kotlin.math.roundToInt
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirestoreMovieDB
 
-data class FirestoreMovieDB(
-    val id: Int = 0,
-    val description: String = "",
-    val genre: String = "",
-    val poster: String = "",
-    val rating: Double = 0.0,
-    val release_year: String = "",
-    val title: String = ""
-)
+val sessionId = "LMXzm0Gumwi6EIcOUY5C"
+val userId = "aleks@gmail.com"
 
-// Content takes a movie and displays it
 @Composable
 fun Content(movie: FirestoreMovieDB){
     SubcomposeAsyncImage(
@@ -190,18 +182,152 @@ fun MovieList(movies: List<FirestoreMovieDB>) {
 fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
     val db = FirebaseFirestore.getInstance()
     val moviesState = remember { mutableStateOf<List<FirestoreMovieDB>>(emptyList()) }
+    val seenMovies = remember { mutableStateOf<List<Int>>(emptyList()) }
 
-    // FETCH 10 MOVIES FROM FIRESTORE
-    LaunchedEffect(Unit) {
+    val finalMovieState = remember { mutableStateOf("") }
+    val numUsersState = remember { mutableStateOf<Int?>(null) }
+    val fetchingMoviesAllowed = remember { mutableStateOf(true) }
+
+    // Function to get seen movies for current user in session
+    fun updateSeenMoviesList() {
+        db.collection("sessions")
+            .document(sessionId)
+            .get()
+            .addOnSuccessListener { document ->
+                val usersMap = document.get("Users") as? Map<String, List<String>>
+                seenMovies.value = usersMap?.get(userId)?.map { it.toInt() } ?: emptyList()
+            }
+    }
+
+    fun fetchRandomMovies() {
+        if (!fetchingMoviesAllowed.value) return
+        updateSeenMoviesList()
+
+        val availableMovieIds = (1..100).filter { it !in seenMovies.value }
+        if (availableMovieIds.isEmpty()) {
+            return
+        }
+
+        val randomIds = availableMovieIds.shuffled().take(10)
+
         db.collection("movies")
-            .limit(10)
+            .whereIn("id", randomIds)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val loadedMovies = querySnapshot.documents.mapNotNull {
                     it.toObject(FirestoreMovieDB::class.java)
                 }
-                moviesState.value = loadedMovies
+                moviesState.value = moviesState.value + loadedMovies
             }
+    }
+
+    val triggerFetchMovies = remember { mutableStateOf(false) }
+
+    // get finalMovie and numUsers from db
+    LaunchedEffect(Unit) {
+        db.collection("sessions")
+            .document(sessionId)
+            .get()
+            .addOnSuccessListener { document ->
+                val finalMovie = document.getString("finalMovie") ?: ""
+                val numUsers = document.getLong("numUsers")?.toInt() ?: 2
+                finalMovieState.value = finalMovie
+                numUsersState.value = numUsers
+
+                // if finalMovie isn't empty, disable fetching/swiping
+                if (finalMovie.isNotEmpty()) {
+                    fetchingMoviesAllowed.value = false
+                } else {
+                    triggerFetchMovies.value = true
+                }
+            }
+    }
+
+    LaunchedEffect(triggerFetchMovies.value) {
+        if (triggerFetchMovies.value) {
+            fetchRandomMovies()
+            triggerFetchMovies.value = false
+        }
+    }
+
+
+    // update session data after interactions
+    fun updateSessionData(movieId: Int, isLiked: Boolean, onComplete: () -> Unit) {
+        val sessionRef = db.collection("sessions").document(sessionId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(sessionRef)
+
+            val usersMapAny = snapshot.get("Users") as? Map<String, Any> ?: emptyMap()
+            val usersMap: Map<String, List<String>> = usersMapAny.mapValues { entry ->
+                val list = (entry.value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                list
+            }
+
+            val userMovies = usersMap[userId]?.toMutableList() ?: mutableListOf()
+            userMovies.add(movieId.toString())
+            val updatedUsersMap = usersMap + (userId to userMovies)
+
+            if (isLiked) {
+                val moviesMapAny = snapshot.get("Movies") as? Map<String, Any> ?: emptyMap()
+                val moviesMap = moviesMapAny.mapValues { entry ->
+                    (entry.value as? Long)?.toInt() ?: 0
+                }
+                val movieLikes = moviesMap[movieId.toString()] ?: 0
+                val updatedCount = movieLikes + 1
+                val updatedMoviesMap = moviesMap + (movieId.toString() to updatedCount)
+
+                transaction.update(sessionRef, mapOf(
+                    "Users" to updatedUsersMap,
+                    "Movies" to updatedMoviesMap
+                ))
+
+                val currentNumUsers = numUsersState.value
+                if (currentNumUsers != null && updatedCount == currentNumUsers) {
+                    transaction.update(sessionRef, "finalMovie", movieId.toString())
+                }
+            } else {
+                transaction.update(sessionRef, mapOf(
+                    "Users" to updatedUsersMap
+                ))
+            }
+        }.addOnSuccessListener {
+            db.collection("sessions").document(sessionId).get().addOnSuccessListener { doc ->
+                val fm = doc.getString("finalMovie") ?: ""
+                if (fm.isNotEmpty()) {
+                    finalMovieState.value = fm
+                    fetchingMoviesAllowed.value = false
+                }
+                onComplete()
+            }.addOnFailureListener {
+                onComplete()
+            }
+        }.addOnFailureListener {
+            onComplete()
+        }
+    }
+
+
+
+    // if finalMovie is set, just show that movie
+    val finalMovieId = finalMovieState.value
+
+    val finalMovieData = remember { mutableStateOf<FirestoreMovieDB?>(null) }
+    LaunchedEffect(finalMovieId) {
+        if (finalMovieId.isNotEmpty()) {
+            val finalMovieInt = finalMovieId.toIntOrNull() // converting strings to int bc im dumb
+            if (finalMovieInt != null) {
+                db.collection("movies")
+                    .whereEqualTo("id", finalMovieInt)
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        finalMovieData.value = querySnapshot.documents.firstOrNull()
+                            ?.toObject(FirestoreMovieDB::class.java)
+                    }
+            } else {
+                println("DIDNT WORK")
+            }
+        }
     }
 
     var offset by remember { mutableStateOf(0f) }
@@ -213,38 +339,94 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
     var preview by remember { mutableStateOf(false) }
     val authState = authViewModel.authState.observeAsState()
 
+    // check if we need to fetch more movies
+    LaunchedEffect(i) {
+        if (fetchingMoviesAllowed.value && moviesState.value.isNotEmpty()) {
+            val remainingMovies = moviesState.value.size - i
+            if (remainingMovies <= 2) {
+                fetchRandomMovies()
+            }
+        }
+    }
+
     val onSwipeLeft: () -> Unit = {
         i++
     }
+
     val onSwipeRight: () -> Unit = {
-        liked = liked.toMutableSet().apply { add(i.mod(moviesState.value.size)) }
+        liked = liked.toMutableSet().apply { add(i) }
         i++
     }
+
     val swipeThreshold: Float = 400f
     val sensitivityFactor: Float = 3f
 
     LaunchedEffect(dismissRight) {
-        if (dismissRight) {
+        if (dismissRight && fetchingMoviesAllowed.value) {
             delay(300)
-            onSwipeRight.invoke()
-            dismissRight = false
+            val currentMovie = moviesState.value.getOrNull(i) ?: return@LaunchedEffect
+            updateSessionData(currentMovie.id, true) {
+                onSwipeRight.invoke()
+                dismissRight = false
+            }
         }
     }
 
     LaunchedEffect(dismissLeft) {
-        if (dismissLeft) {
+        if (dismissLeft && fetchingMoviesAllowed.value) {
             delay(300)
-            onSwipeLeft.invoke()
-            dismissLeft = false
+            val currentMovie = moviesState.value.getOrNull(i) ?: return@LaunchedEffect
+            updateSessionData(currentMovie.id, false) {
+                onSwipeLeft.invoke()
+                dismissLeft = false
+            }
         }
     }
 
     LaunchedEffect(i) {
-        if (moviesState.value.isNotEmpty() && i > 0 && i.mod(moviesState.value.size) == 0){
+        if (moviesState.value.isNotEmpty() && i > 0 && i == moviesState.value.size){
             preview = true
         }
     }
 
+    // If finalMovie is set, just show that movie
+    if (finalMovieId.isNotEmpty()) {
+        val movie = finalMovieData.value
+        if (movie == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Loading final movie...")
+            }
+            return
+        } else {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Content(movie)
+                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    MovieTitleCard(
+                        modifier = Modifier.padding(top = 50.dp),
+                        movieTitle = movie.title,
+                        fontSize = 24
+                    )
+                    MovieTitleCard(
+                        movieTitle = movie.description,
+                        fontSize = 20
+                    )
+                }
+                IconButton(
+                    onClick = { navController.navigate("groups")},
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Close",
+                        tint = Color.White
+                    )
+                }
+            }
+            return
+        }
+    }
+
+    // do usual stuff if finalMovie is empty
     if (moviesState.value.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Loading...")
@@ -252,7 +434,13 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
         return
     }
 
-    val currentMovie = moviesState.value[i.mod(moviesState.value.size)]
+    val currentMovie = moviesState.value.getOrNull(i)
+    if (currentMovie == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No more movies")
+        }
+        return
+    }
 
     if (preview){
         Column (modifier = Modifier.fillMaxSize()){
@@ -269,12 +457,17 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
         }
     }
     else {
+        // get next movie to show behind current one if available
+        val nextMovieIndex = (i+1).mod(moviesState.value.size)
+        val nextMovie = moviesState.value.getOrElse(nextMovieIndex) { currentMovie }
+
         Box {
-            val nextMovie = moviesState.value[(i+1).mod(moviesState.value.size)]
             SubcomposeAsyncImage(
                 model = "${base_url}${nextMovie.poster}",
                 contentDescription = "Next image",
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                loading = { CircularProgressIndicator() },
             )
             Box(modifier = Modifier
                 .offset { IntOffset(offset.roundToInt(), 0) }
@@ -282,16 +475,18 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     detectHorizontalDragGestures(onDragEnd = {
                         offset = 0f
                     }) { change, dragAmount ->
-                        offset += (dragAmount / density) * sensitivityFactor
-                        when {
-                            offset > swipeThreshold -> {
-                                dismissRight = true
+                        if (fetchingMoviesAllowed.value) {
+                            offset += (dragAmount / density) * sensitivityFactor
+                            when {
+                                offset > swipeThreshold -> {
+                                    dismissRight = true
+                                }
+                                offset < -swipeThreshold -> {
+                                    dismissLeft = true
+                                }
                             }
-                            offset < -swipeThreshold -> {
-                                dismissLeft = true
-                            }
+                            if (change.positionChange() != Offset.Zero) change.consume()
                         }
-                        if (change.positionChange() != Offset.Zero) change.consume()
                     }
                 }
                 .graphicsLayer(
@@ -346,7 +541,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                         modifier = Modifier.size(130.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         onClick = {
-                            dismissRight = true
+                            if (fetchingMoviesAllowed.value) dismissRight = true
                         },
                     ) {
                         Image(
@@ -361,7 +556,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                         modifier = Modifier.size(130.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                         onClick = {
-                            dismissLeft = true
+                            if (fetchingMoviesAllowed.value) dismissLeft = true
                         },
                     ) {
                         Image(
