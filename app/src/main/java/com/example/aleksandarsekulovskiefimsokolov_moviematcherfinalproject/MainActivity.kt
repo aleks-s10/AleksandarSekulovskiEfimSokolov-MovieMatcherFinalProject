@@ -30,6 +30,7 @@ import coil.ImageLoaderFactory
 import coil.util.DebugLogger
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieAPI
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.saveMoviesToFirestore
 import com.google.firebase.firestore.firestore
@@ -41,12 +42,14 @@ import okhttp3.Interceptor
 class MainActivity : ComponentActivity(), ImageLoaderFactory{
     private lateinit var auth: FirebaseAuth
     private lateinit var analytics: FirebaseAnalytics
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         analytics = Firebase.analytics
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val db = Firebase.firestore
+        val localdb = DatabaseProvider.getDatabase(this)
         val authViewModel: AuthViewModel by viewModels()
         setContent {
             AleksandarSekulovskiEfimSokolovMovieMatcherFinalProjectTheme {
