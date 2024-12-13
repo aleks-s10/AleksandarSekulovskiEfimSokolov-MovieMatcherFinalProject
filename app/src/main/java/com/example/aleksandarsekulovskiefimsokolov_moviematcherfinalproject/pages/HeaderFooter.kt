@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 fun Search(
     searchQuery: String,
     changeSearchQuery: (String) -> Unit,
-    searchHandler: () -> Unit,
+    searchHandler: (String) -> Unit,
     searchLabel: String
 ){
     val searchColor = Color.LightGray.copy(alpha = 0.3f)
@@ -50,7 +50,7 @@ fun Search(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = searchHandler
+                onClick = { searchHandler(searchQuery) }
             ){
                 Icon(
                     imageVector = Icons.Filled.Search,
@@ -81,7 +81,7 @@ fun SearchHeader(
     title: String,
     rightButtonIcon: ImageVector,
     rightButtonHandler: () -> Unit,
-    searchHandler: () -> Unit,
+    searchHandler: (String) -> Unit,
     searchLabel: String,
     modifier: Modifier = Modifier
 ) {

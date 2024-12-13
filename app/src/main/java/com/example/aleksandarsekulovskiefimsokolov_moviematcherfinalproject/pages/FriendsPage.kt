@@ -38,8 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+
 @Composable
 fun FriendsContent(){
 
@@ -47,19 +54,51 @@ fun FriendsContent(){
 
 @Composable
 fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val db = DatabaseProvider.getDatabase(context)
+    var friends by remember { mutableStateOf<List<UserDB>>(
+        listOf()
+    ) }
+    var displayedFriends by remember { mutableStateOf<List<UserDB>>(
+        listOf()
+    ) }
+    LaunchedEffect(Unit) {
+        friends = db.movieDao().getFriends()
+        displayedFriends = friends
+    }
     Box(
         modifier = Modifier.fillMaxSize()
     ){
-        Column(modifier = Modifier.align(Alignment.TopCenter)) {
+        Column(modifier = Modifier
+            .align(Alignment.TopCenter)
+            .fillMaxSize()) {
             SearchHeader(
                 title = "Friends",
                 rightButtonHandler =  {
                     changeAddInProgress()
                 },
-                searchHandler = {},
+                searchHandler = {
+                    if (it != "" )
+                    coroutineScope.launch {
+                        displayedFriends = db.movieDao().prefixSearch(it)
+                    }
+                    else displayedFriends = friends
+                },
                 searchLabel = "Search Friends",
                 rightButtonIcon = Icons.Filled.Add,
             )
+            OutlinedButton(
+                onClick = {
+                    coroutineScope.launch {
+                        val users = listOf(getsampleUser("James"), getsampleUser("Jane"), getsampleUser("Bob"))
+                        for (user in users)  db.movieDao().insertUser(user)
+                    }
+                }
+            ) {
+                Text("Put friends to DB")
+            }
+            UserSearchResultsList(displayedFriends, onAddFriend = {}, modifier = Modifier.fillMaxSize())
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -71,17 +110,55 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
 
 @Composable
 fun AddFriend(
-    changeAddInProgress: () -> Unit
+    changeAddInProgress: () -> Unit,
+    searchManager: SearchManager
 ){
-    SearchHeader(
-        title = "Add Friend",
-        rightButtonHandler =  {
-            changeAddInProgress()
-        },
-        searchHandler = {}, // Firebase search here
-        searchLabel = "Find Friend to Add",
-        rightButtonIcon = Icons.Filled.Close
-    )
+    val coroutineScope = rememberCoroutineScope()
+    var friends by remember { mutableStateOf<List<UserDB>>(listOf()) }
+    Column {
+        SearchHeader(
+            title = "Add Friend",
+            rightButtonHandler =  {
+                changeAddInProgress()
+            },
+            searchHandler = {
+                coroutineScope.launch {
+                    val response = searchManager.searchUsers(it, "algoliaUsers")
+                    if (response.isNotEmpty()) {
+                        friends = response.map { hit ->
+                            val properties = hit.additionalProperties
+                            val profilePicture = properties?.get("Profile_Picture")
+                            val sessions = properties?.get("Sessions")
+                            val movies = properties?.get("Movies")
+                            val username = properties?.get("Username")
+                            val favGenre = properties?.get("favGenre")
+                            val id = properties?.get("id")
+                            val email =  properties?.get("email")
+                            val firstName = properties?.get("FirstName")
+                            val lastName = properties?.get("LastName")
+                            UserDB(
+                                userName = if (username != null) Json.decodeFromJsonElement<String>(username) else "",
+                                favoriteGenre = if (favGenre != null) Json.decodeFromJsonElement<String>(favGenre) else "",
+                                userID = if (id != null) Json.decodeFromJsonElement<String>(id) else "",
+                                email = if (email != null) Json.decodeFromJsonElement<String>(email) else "",
+                                firstName = if (firstName != null) Json.decodeFromJsonElement<String>(firstName) else "",
+                                lastName = if (lastName != null) Json.decodeFromJsonElement<String>(lastName) else "",
+                                profilePicture =  R.drawable.joker, // if (profilePicture != null ) Json.decodeFromJsonElement<Int>(profilePicture) else 0,
+                                pending = false,
+                                self = 0,
+                                movies = if (sessions != null ) Json.decodeFromJsonElement<List<String>>(sessions) else listOf(),
+                                sessions = if (movies != null ) Json.decodeFromJsonElement<List<String>>(movies) else listOf(),
+                                )
+                        }
+
+                    }
+                }
+            }, // Firebase search here
+            searchLabel = "Find Friend to Add",
+            rightButtonIcon = Icons.Filled.Close
+        )
+        UserSearchResultsList(friends, onAddFriend = {}, modifier = Modifier.fillMaxSize())
+    }
 
 }
 
@@ -105,7 +182,7 @@ fun FriendsPage(modifier : Modifier = Modifier, navController: NavController, au
         Friends(changeAddInProgress = changeAddInProgress, navController = navController)
     }
     else{
-        AddFriend(changeAddInProgress = changeAddInProgress)
+        AddFriend(changeAddInProgress = changeAddInProgress, searchManager = searchManager)
     }
 }
 
@@ -182,7 +259,7 @@ fun UserSearchResultsList(
     onAddFriend: (UserDB) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(users) { user ->
             UserSearchResultCard(
                 user = user,
@@ -192,24 +269,29 @@ fun UserSearchResultsList(
     }
 }
 
-@Preview
-@Composable
-fun FriendListPreview() {
-
-    val sampleUser = UserDB(
-        userID = "user123",
-        userName = "johndoe",
+val getsampleUser: (String) -> UserDB =
+{
+    UserDB(
+        userID = it,
+        userName = it,
         profilePicture = R.drawable.joker,
         movies = listOf("Interstellar", "Inception", "The Matrix"),
         sessions = listOf("session1", "session2"),
         email = "johndoe@example.com",
-        firstName = "John",
+        firstName = it,
         lastName = "Doe",
         favoriteGenre = "Sci-Fi",
         pending = false,
         self = 0
     )
-    val users = listOf(sampleUser, sampleUser, sampleUser)
+}
+
+@Preview
+@Composable
+fun FriendListPreview() {
+
+
+    val users = listOf(getsampleUser("James"), getsampleUser("Jane"), getsampleUser("Bob"))
     UserSearchResultsList(users, onAddFriend = {})
 }
 
@@ -219,3 +301,4 @@ fun FriendListPreview() {
 //fun FriendsPagePreview(){
 //    FriendsPage()
 //}
+
