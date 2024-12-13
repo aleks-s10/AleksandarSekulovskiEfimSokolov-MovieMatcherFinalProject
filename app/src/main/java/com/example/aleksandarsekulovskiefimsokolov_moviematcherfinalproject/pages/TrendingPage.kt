@@ -56,14 +56,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.Int
 
@@ -222,7 +227,102 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
     val closeDetails = { detailsView = false }
 
     val context = LocalContext.current
-    val db = DatabaseProvider.getDatabase(context)
+    val localDB = DatabaseProvider.getDatabase(context)
+
+    val db = FirebaseFirestore.getInstance()
+
+    val currentUser = authViewModel.currentAppUser
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+
+        coroutineScope.launch { // Use CoroutineScope for network calls
+
+            val document = db.collection("users").document(currentUser).get().await()
+
+            if (document.exists()) {
+
+                val user = UserDB(
+
+                    userID = document.getString("id") ?: "",
+
+                    email = document.getString("email") ?: "",
+
+                    userName = document.getString("Username") ?: "",
+
+                    firstName = document.getString("FirstName") ?: "",
+
+                    lastName = document.getString("LastName") ?: "",
+
+                    profilePicture = document.getLong("Profile_Picture")?.toInt() ?: 0,
+
+                    favoriteGenre = document.getString("favGenre") ?: "",
+
+                    movies = document.get("Movies") as? List<String> ?: listOf(),
+
+                    sessions = document.get("Sessions") as? List<String> ?: listOf(),
+
+                    pending = false,
+
+                    self = 1,
+
+                    )
+
+                val friends = document.get("Friends") as? List<String> ?: listOf()
+
+
+                friends.forEach { friendId ->
+
+                    coroutineScope.launch { // Nested launch for each friend
+
+                        val friendDoc = db.collection("users").document(friendId).get().await()
+
+                        println("FRIENDDOC" + friendDoc)
+                        if (friendDoc.exists()) {
+
+                            val friend = UserDB(
+
+                                userID = friendDoc.getString("id") ?: "",
+
+                                email = friendDoc.getString("email") ?: "",
+
+                                userName = friendDoc.getString("Username") ?: "",
+
+                                firstName = friendDoc.getString("FirstName") ?: "",
+
+                                lastName = friendDoc.getString("LastName") ?: "",
+
+                                profilePicture = friendDoc.getLong("Profile_Picture")?.toInt() ?: 0,
+
+                                favoriteGenre = friendDoc.getString("favGenre") ?: "",
+
+                                movies = friendDoc.get("Movies") as? List<String> ?: listOf(),
+
+                                sessions = friendDoc.get("Sessions") as? List<String> ?: listOf(),
+
+                                pending = false,
+
+                                self = 0,
+
+                                )
+                            println("FRIEND" + friend)
+
+                            localDB.movieDao().insertUser(friend)
+
+                        }
+
+                    }
+
+                }
+
+
+                localDB.movieDao().insertUser(user)
+
+            }
+
+        }
+    }
+
 
     var favorites by remember { mutableStateOf<Set<MovieDB>>(sampleMovies.toSet()) }
     val setFavorite: (MovieDB) -> Unit = {favorites = favorites + it}
@@ -233,18 +333,18 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
     }
 
     LaunchedEffect(Unit) {
-        favorites = db.movieDao().getFavorites().toSet()
+        favorites = localDB.movieDao().getFavorites().toSet()
     }
 
     var movies by remember { mutableStateOf<List<MovieDB>>(emptyList()) }
     LaunchedEffect(page) {
         movies = withContext(Dispatchers.IO) {
-            db.movieDao().getMoviesByPage(page)
+            localDB.movieDao().getMoviesByPage(page)
         }
         if (movies.isEmpty()){
             fetchAndStoreMovies(context, page.toInt())
             movies = withContext(Dispatchers.IO) {
-                db.movieDao().getMoviesByPage(page)
+                localDB.movieDao().getMoviesByPage(page)
             }
         }
     }

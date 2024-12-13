@@ -142,19 +142,21 @@ fun ProfileScreen(navController: NavController) {
         detailsView = true
     }
     val closeDetails = { detailsView = false }
+    val emptyUser = UserDB(userID = "", userName = "Username", profilePicture = R.drawable.joker, movies = listOf(), sessions = listOf(), email = "", firstName = "", lastName = "", favoriteGenre = "", pending = false, self = 1)
 
     val context = LocalContext.current
     val db = DatabaseProvider.getDatabase(context)
     var profile by remember {
-        mutableStateOf<UserDB?>(null)
+        mutableStateOf<UserDB>(emptyUser)
     }
 
     LaunchedEffect(Unit) {
         favorites = db.movieDao().getFavorites().toSet()
-        profile = db.movieDao().getSelf()
-        firstName = profile!!.firstName
-        lastName = profile!!.lastName
-        favoriteGenre = profile!!.favoriteGenre
+        val profile_temp = db.movieDao().getSelf()
+        println("PROFILE IS: $profile_temp")
+        firstName = profile.firstName
+        lastName = profile.lastName
+        favoriteGenre = profile.favoriteGenre
     }
 
     val onSubmit: (UserDB) -> Unit = {
@@ -263,7 +265,7 @@ fun ProfileScreen(navController: NavController) {
     else{
         ProfileEdit(
             flipEdit = flipEdit,
-            user = profile!!,
+            user = profile,
             onSubmit = onSubmit
         )
     }

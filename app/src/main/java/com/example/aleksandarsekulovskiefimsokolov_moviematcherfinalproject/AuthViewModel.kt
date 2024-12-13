@@ -1,29 +1,43 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject
 
+import android.app.Application
+import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.room.util.EMPTY_STRING_ARRAY
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirestoreUsersDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.lang.System.console
+import javax.inject.Inject
 import kotlin.String
 import kotlin.collections.listOf
+import kotlin.coroutines.coroutineContext
 
-class AuthViewModel : ViewModel() {
+
+class AuthViewModel() : ViewModel() {
     private val auth : FirebaseAuth = FirebaseAuth.getInstance()
-
-    var currentUser = ""
+    var currentAppUser = ""
+    val db = FirebaseFirestore.getInstance()
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
-
 
     init {
         checkAuthStatus()
@@ -33,7 +47,8 @@ class AuthViewModel : ViewModel() {
         if(auth.currentUser==null){
             _authState.value = AuthState.Unauthenticated
         }else{
-            _authState.value = AuthState.Authenticated
+            currentAppUser = auth.currentUser?.email.toString()
+            _authState.postValue(AuthState.Authenticated)
         }
     }
 
@@ -47,7 +62,8 @@ class AuthViewModel : ViewModel() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener{task->
                 if (task.isSuccessful){
-                    currentUser = email
+                    currentAppUser = email
+
                     _authState.value = AuthState.Authenticated
                 }else{
                     _authState.value = AuthState.Error(task.exception?.message?:"Sorry, something went wrong")
@@ -61,7 +77,6 @@ class AuthViewModel : ViewModel() {
 
         var worked = true
 
-        val db = FirebaseFirestore.getInstance()
         // Check if the username already exists
         db.collection("users")
             .whereEqualTo("Username", Username)
@@ -181,7 +196,7 @@ class AuthViewModel : ViewModel() {
     fun signout(navController: NavController){
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
-        currentUser = ""
+        currentAppUser = ""
         navController.navigate("login")
     }
 
