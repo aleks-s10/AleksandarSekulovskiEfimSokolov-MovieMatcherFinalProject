@@ -42,7 +42,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.util
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.User
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -112,20 +112,20 @@ fun LoginPage(
             onClick = { authViewModel.login(email, password);
                 kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
                     val dbFire = FirebaseFirestore.getInstance()
-                    var user = User(email, "", 0, "", "", "", "", "", "", false, 0)
-                    var localFriends : List<User> = listOf()
+                    var user = UserDB(email, "", 0, listOf(), listOf(), "", "", "", "", false, 0)
+                    var localFriends : List<UserDB> = listOf()
                     // Check if the username already exists
                     dbFire.collection("users").document(email)
                         .get()
                         .addOnSuccessListener { document ->
                             if (document.exists()) {
-                                user = User(
+                                user = UserDB(
                                     userID = document.id,
                                     userName = document.getString("Username") ?: "Unknown",
                                     profilePicture = document.getLong("ProfilePicture")?.toInt()
                                         ?: 0,
-                                    movies = document.getString("Movies") ?: "None",
-                                    sessions = document.getString("Sessions") ?: "None",
+                                    movies = document.get("Movies") as List<String>,
+                                    sessions = document.get("Sessions") as List<String>,
                                     email = document.getString("Email") ?: "Unknown",
                                     firstName = document.getString("FirstName") ?: "Unknown",
                                     lastName = document.getString("LastName") ?: "Unknown",
@@ -136,23 +136,22 @@ fun LoginPage(
                                 )
                                 val friendsList = document.get("Friends") as? List<String>
                                 // Or use forEach for cleaner syntax
-                                var friend = User("", "", 0, "", "", "", "", "", "", false, 0)
+                                var friend = UserDB("", "", 0, listOf(), listOf(), "", "", "", "", false, 0)
 
                                 friendsList?.forEach {
                                     dbFire.collection("users").document(it)
                                         .get()
                                         .addOnSuccessListener { document ->
                                             if (document.exists()) {
-                                                friend = User(
+                                                friend = UserDB(
                                                     userID = document.id,
                                                     userName = document.getString("Username")
                                                         ?: "Unknown",
                                                     profilePicture = document.getLong("ProfilePicture")
                                                         ?.toInt()
                                                         ?: 0,
-                                                    movies = document.getString("Movies") ?: "None",
-                                                    sessions = document.getString("Sessions")
-                                                        ?: "None",
+                                                    movies = document.get("Movies") as List<String>,
+                                                    sessions = document.get("Sessions") as List<String>,
                                                     email = document.getString("Email")
                                                         ?: "Unknown",
                                                     firstName = document.getString("FirstName")

@@ -226,7 +226,7 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
                     lastName = lastName,
                     favoriteGenre = favoriteGenre,
                     pending = false,
-                    self = true
+                    self = 1
                 )
             )
             authViewModel.signup(
