@@ -40,9 +40,16 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -122,8 +129,6 @@ fun AddFriend(
                 changeAddInProgress()
             },
             searchHandler = {
-                if (it == "") friends = listOf()
-                else
                 coroutineScope.launch {
                     val response = searchManager.searchUsers(it, "algoliaUsers")
                     if (response.isNotEmpty()) {

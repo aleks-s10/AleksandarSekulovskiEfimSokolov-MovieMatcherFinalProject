@@ -158,6 +158,10 @@ fun ProfileScreen(navController: NavController) {
         firstName = profile.firstName
         lastName = profile.lastName
         favoriteGenre = profile.favoriteGenre
+        profile = db.movieDao().getSelf()
+        firstName = profile.firstName
+        lastName = profile.lastName
+        favoriteGenre = profile.favoriteGenre
     }
 
     val onSubmit: (UserDB) -> Unit = {
