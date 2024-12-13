@@ -122,6 +122,8 @@ fun AddFriend(
                 changeAddInProgress()
             },
             searchHandler = {
+                if (it == "") friends = listOf()
+                else
                 coroutineScope.launch {
                     val response = searchManager.searchUsers(it, "algoliaUsers")
                     if (response.isNotEmpty()) {
