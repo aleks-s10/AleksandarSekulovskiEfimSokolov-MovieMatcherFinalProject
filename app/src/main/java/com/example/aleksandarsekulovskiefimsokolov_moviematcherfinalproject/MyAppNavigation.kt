@@ -10,6 +10,7 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.page
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.Homepage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.TrendingPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.LoginPage
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.NotificationsPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.ProfilePage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SignupPage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.SwipingScreen
@@ -42,6 +43,9 @@ fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel
         }
         composable("profile") {
             ProfilePage(modifier, navController, authViewModel)
+        }
+        composable("notifications"){
+            NotificationsPage(modifier, navController, authViewModel)
         }
     })
 

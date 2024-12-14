@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -208,14 +209,25 @@ fun ProfileScreen(navController: NavController) {
                             )
                         }
                     }
-                    IconButton(
-                        onClick = flipEdit,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit",
-                            tint = Color.Black
-                        )
+                    Row {
+                        IconButton(
+                            onClick = flipEdit,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Edit",
+                                tint = Color.Black
+                            )
+                        }
+                        IconButton(
+                            onClick = { navController.navigate("notifications") },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Notifications,
+                                contentDescription = "Notificaitons",
+                                tint = Color.Black
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
