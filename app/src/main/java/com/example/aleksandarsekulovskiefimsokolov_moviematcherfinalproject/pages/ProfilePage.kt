@@ -148,17 +148,12 @@ fun ProfileScreen(navController: NavController) {
     val db = DatabaseProvider.getDatabase(context)
     var profile by remember {
         mutableStateOf<UserDB>(emptyUser)
-        mutableStateOf<UserDB>(emptyUser)
     }
 
     LaunchedEffect(Unit) {
         favorites = db.movieDao().getFavorites().toSet()
         val profile_temp = db.movieDao().getSelf()
         println("PROFILE IS: $profile_temp")
-        firstName = profile.firstName
-        lastName = profile.lastName
-        favoriteGenre = profile.favoriteGenre
-        profile = db.movieDao().getSelf()
         firstName = profile.firstName
         lastName = profile.lastName
         favoriteGenre = profile.favoriteGenre
