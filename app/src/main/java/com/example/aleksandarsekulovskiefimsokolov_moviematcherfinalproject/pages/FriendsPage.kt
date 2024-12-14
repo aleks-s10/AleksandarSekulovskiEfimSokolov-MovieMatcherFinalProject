@@ -50,8 +50,6 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.util
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
-import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
 @Composable
