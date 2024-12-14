@@ -216,7 +216,7 @@ fun UserSearchResultCard(
         ) {
             // Profile Picture
             Image(
-                painter = painterResource(id = user.profilePicture),
+                painter = painterResource(id = R.drawable.joker),
                 contentDescription = "${user.firstName} ${user.lastName} Profile Picture",
                 modifier = Modifier
                     .size(55.dp)
