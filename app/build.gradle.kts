@@ -109,4 +109,7 @@ dependencies {
 
     implementation("androidx.activity:activity-ktx:1.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
 }

@@ -39,7 +39,8 @@ data class UserDB(
 data class GroupDB (
     @PrimaryKey val groupID: String,
     val name: String,
-    val members: List<String>
+    val members: List<String>,
+    val pending: Boolean,
 )
 
 @Entity(tableName = "sessions")

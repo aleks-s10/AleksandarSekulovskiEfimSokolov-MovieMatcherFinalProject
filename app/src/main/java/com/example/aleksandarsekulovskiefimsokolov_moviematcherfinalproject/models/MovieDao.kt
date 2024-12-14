@@ -42,4 +42,8 @@ interface MovieDao {
     @Query("SELECT * FROM users WHERE userName LIKE :query || '%'")
     suspend fun prefixSearch(query: String): List<UserDB>
 
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertGroupNotification(group: GroupDB)
+
 }

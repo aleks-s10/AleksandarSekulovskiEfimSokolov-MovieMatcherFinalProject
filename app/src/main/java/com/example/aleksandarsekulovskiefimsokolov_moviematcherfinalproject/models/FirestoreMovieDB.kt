@@ -8,4 +8,14 @@ data class FirestoreMovieDB (
     val rating: Double,
     val release_year: String,
     val title: String,
-)
+) {
+    constructor() : this(
+        id = 0,
+        description = "",
+        genre = "",
+        poster = "",
+        rating = 0.0,
+        release_year = "",
+        title = ""
+    )
+}
