@@ -196,6 +196,10 @@ fun ProfileScreen(navController: NavController) {
                             text = "$firstName $lastName",
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
+                        Text(
+                            text = username,
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     }
                     Spacer(modifier = Modifier.width(110.dp))
                     IconButton(
