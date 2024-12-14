@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 @Entity(tableName = "movies")
 data class MovieDB(
@@ -64,5 +66,28 @@ class Converters {
     fun stringToList(input: String): List<String> {
         return input.split("@")
     }
+
+    @TypeConverter
+    fun mapToString(input: Map<String, Int>): String {
+        return Gson().toJson(input)
+    }
+
+    @TypeConverter
+    fun stringToMap(input: String): Map<String, Int> {
+        val type = object : TypeToken<Map<String, Int>>() {}.type
+        return Gson().fromJson(input, type)
+    }
+
+    @TypeConverter
+    fun mapListToString(input: Map<String, List<String>>): String {
+        return Gson().toJson(input)
+    }
+
+    @TypeConverter
+    fun stringToMapList(input: String): Map<String, List<String>> {
+        val type = object : TypeToken<Map<String, List<String>>>() {}.type
+        return Gson().fromJson(input, type)
+    }
+
 
 }
