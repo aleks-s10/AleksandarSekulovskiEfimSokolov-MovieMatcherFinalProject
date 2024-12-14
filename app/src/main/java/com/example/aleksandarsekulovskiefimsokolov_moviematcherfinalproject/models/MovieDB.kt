@@ -34,6 +34,24 @@ data class UserDB(
     val self: Int,
 )
 
+@Entity(tableName = "groups")
+@TypeConverters(Converters::class)
+data class GroupDB (
+    @PrimaryKey val groupID: String,
+    val name: String,
+    val members: List<String>
+)
+
+@Entity(tableName = "sessions")
+@TypeConverters(Converters::class)
+data class SessionDB (
+    @PrimaryKey val sessionID: String,
+    val movies: Map<String, Int>,
+    val users: Map<String, List<String>>,
+    val numUsers: Int
+)
+
+
 
 class Converters {
 

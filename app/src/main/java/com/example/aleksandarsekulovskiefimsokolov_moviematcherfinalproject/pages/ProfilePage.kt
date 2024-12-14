@@ -154,9 +154,11 @@ fun ProfileScreen(navController: NavController) {
         favorites = db.movieDao().getFavorites().toSet()
         val profile_temp = db.movieDao().getSelf()
         println("PROFILE IS: $profile_temp")
+        profile = profile_temp
         firstName = profile.firstName
         lastName = profile.lastName
         favoriteGenre = profile.favoriteGenre
+        username = profile.userName
     }
 
     val onSubmit: (UserDB) -> Unit = {
@@ -167,7 +169,8 @@ fun ProfileScreen(navController: NavController) {
             userId = it.userName,
             firstName = it.firstName,
             lastName = it.lastName,
-            favoriteGenre = it.favoriteGenre
+            favoriteGenre = it.favoriteGenre,
+            username = it.userName
         )
     }
 
@@ -180,28 +183,31 @@ fun ProfileScreen(navController: NavController) {
                     .padding(16.dp)
             ) {
                 Spacer(Modifier.height(15.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = profilePicturePlaceholder),
-                        contentDescription = "Profile Picture",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = "$firstName $lastName",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Row {
+                        Image(
+                            painter = painterResource(id = profilePicturePlaceholder),
+                            contentDescription = "Profile Picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         )
-                        Text(
-                            text = username,
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = "$firstName $lastName",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                text = username,
+                                style = MaterialTheme.typography.titleLarge.copy(color = Color.DarkGray)
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(110.dp))
                     IconButton(
                         onClick = flipEdit,
                     ) {
@@ -491,7 +497,9 @@ fun MovieItem(movie: MovieDB,
                     setFavorite(movie)
                 }
 
-            }, modifier = Modifier.align(Alignment.TopStart).padding(top = 2.dp, start = 2.dp)) {
+            }, modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 2.dp, start = 2.dp)) {
                 Icon(
                     imageVector = if (favorites.contains(movie)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = "Add Movie",

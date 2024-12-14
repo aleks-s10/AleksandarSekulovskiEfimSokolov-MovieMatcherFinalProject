@@ -103,7 +103,7 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
             ) {
                 Text("Put friends to DB")
             }
-            UserSearchResultsList(displayedFriends, onAddFriend = {}, modifier = Modifier.fillMaxSize())
+            UserSearchResultsList(displayedFriends, onAddFriend = {}, modifier = Modifier.fillMaxSize(), showIcon = false)
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -127,6 +127,8 @@ fun AddFriend(
                 changeAddInProgress()
             },
             searchHandler = {
+                if (it == "") friends = listOf()
+                else
                 coroutineScope.launch {
                     val response = searchManager.searchUsers(it, "algoliaUsers")
                     if (response.isNotEmpty()) {
@@ -162,7 +164,7 @@ fun AddFriend(
             searchLabel = "Find Friend to Add",
             rightButtonIcon = Icons.Filled.Close
         )
-        UserSearchResultsList(friends, onAddFriend = {}, modifier = Modifier.fillMaxSize())
+        UserSearchResultsList(friends, onAddFriend = {}, modifier = Modifier.fillMaxSize(), showIcon = true)
     }
 
 }
@@ -199,7 +201,8 @@ fun FriendsPage(modifier : Modifier = Modifier, navController: NavController, au
 fun UserSearchResultCard(
     user: UserDB,
     onAddFriendClick: (UserDB) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showIcon: Boolean
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -244,7 +247,7 @@ fun UserSearchResultCard(
                 )
             }
 
-            // Add Friend Button
+            if (showIcon)
             IconButton(
                 onClick = { onAddFriendClick(user) }
             ) {
@@ -262,13 +265,15 @@ fun UserSearchResultCard(
 fun UserSearchResultsList(
     users: List<UserDB>,
     onAddFriend: (UserDB) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showIcon: Boolean
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(users) { user ->
             UserSearchResultCard(
                 user = user,
-                onAddFriendClick = onAddFriend
+                onAddFriendClick = onAddFriend,
+                showIcon = showIcon
             )
         }
     }
@@ -297,7 +302,7 @@ fun FriendListPreview() {
 
 
     val users = listOf(getsampleUser("James"), getsampleUser("Jane"), getsampleUser("Bob"))
-    UserSearchResultsList(users, onAddFriend = {})
+    UserSearchResultsList(users, onAddFriend = {}, showIcon = true)
 }
 
 
