@@ -33,10 +33,13 @@ interface MovieDao {
     @Query("SELECT * FROM users where self == 1")
     suspend fun getSelf(): UserDB
 
-    @Query("SELECT * FROM users where pending == 0")
+    @Query("SELECT * FROM users where self == 0")
     suspend fun getFriends(): List<UserDB>
 
     @Query("SELECT * FROM users where pending == 1")
     suspend fun getPending(): List<UserDB>
+
+    @Query("SELECT * FROM users WHERE userName LIKE :query || '%'")
+    suspend fun prefixSearch(query: String): List<UserDB>
 
 }
