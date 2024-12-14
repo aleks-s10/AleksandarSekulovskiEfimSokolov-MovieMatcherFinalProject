@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,9 +35,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun GroupsContent(){
@@ -61,7 +75,9 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
                 onClick = {
                     navController.navigate("swiping")
                 },
-                modifier = Modifier.align(Alignment.End).padding(end = 10.dp)
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(end = 10.dp)
             ) {
                 Text("Swiping Screen")
             }
@@ -78,15 +94,81 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
 fun AddGroup(
     changeAddInProgress: () -> Unit
 ){
-    SearchHeader(
-        title = "Add Group",
-        rightButtonHandler =  {
-            changeAddInProgress()
-        },
-        searchHandler = {},
-        searchLabel = "Find Group to Add",
-        rightButtonIcon = Icons.Filled.Close
-    )
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val db = DatabaseProvider.getDatabase(context)
+    var friends by remember { mutableStateOf<List<UserDB>>(
+        listOf()
+    ) }
+    var displayedFriends by remember { mutableStateOf<List<UserDB>>(
+        listOf()
+    ) }
+    var selected by remember { mutableStateOf<Set<UserDB>>(setOf()) }
+    val addSelected : (UserDB) -> Unit = {
+        selected = selected + it
+    }
+    val deleteSelected : (UserDB) -> Unit = {
+        selected = selected.filter { user ->
+            user != it
+        }.toSet()
+    }
+
+
+    val onSubmit: ( ) -> Unit = {
+        val selectedUsers = selected.toList()
+//        Submit to Firebase
+    }
+
+
+    LaunchedEffect(Unit) {
+        friends = db.movieDao().getFriends()
+        displayedFriends = friends
+    }
+    Box {
+        Column {
+            SearchHeader(
+                title = "Add Group",
+                rightButtonHandler = {
+                    changeAddInProgress()
+                },
+                searchHandler = {
+                    if (it != "" )
+                        coroutineScope.launch {
+                            displayedFriends = db.movieDao().prefixSearch(it)
+                        }
+                    else displayedFriends = friends
+                },
+                searchLabel = "Find Group to Add",
+                rightButtonIcon = Icons.Filled.Close
+            )
+            UserToasts(selected, onClick = {
+                {
+                    deleteSelected(it)
+                }
+            })
+            UserSearchResultsList(displayedFriends, onAddFriend = {
+                addSelected(it)
+            }, showIcon = true)
+        }
+
+        Card(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 40.dp, bottom = 40.dp),
+            shape = CircleShape,
+            elevation = CardDefaults.elevatedCardElevation(10.dp),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            IconButton(onClick = {
+                onSubmit()
+            }, modifier = Modifier.size(56.dp)) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowForward,
+                    contentDescription = "Add Group",
+                    tint = Color.Black,
+                    modifier = Modifier
+                )
+            }
+        }
+    }
 }
 
 
@@ -251,3 +333,64 @@ fun GroupsScreen() {
 //fun GroupsPagePreview(){
 //    GroupsPage()
 //}
+
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun UserToasts(
+    users: Set<UserDB>,
+    onClick: (UserDB)  -> () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        users.forEach {
+            UserToast(
+                user = it,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
+fun UserToast(
+    user: UserDB,
+    onClick: (UserDB) -> () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick(user) },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 15.dp),
+        ) {
+            Text(
+                text = user.userName,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(Modifier.width(2.dp))
+            IconButton(
+                onClick = onClick(user),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Add Movie",
+                    modifier = Modifier.size(20.dp),
+                    tint = Color.Black
+                )
+            }
+        }
+    }
+}
