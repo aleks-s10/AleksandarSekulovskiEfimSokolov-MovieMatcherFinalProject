@@ -1,5 +1,6 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,10 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.launch
 
 
@@ -92,7 +97,8 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
 
 @Composable
 fun AddGroup(
-    changeAddInProgress: () -> Unit
+    changeAddInProgress: () -> Unit,
+    authViewModel : AuthViewModel
 ){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -112,11 +118,38 @@ fun AddGroup(
             user != it
         }.toSet()
     }
+    val fireDB = FirebaseFirestore.getInstance()
 
 
     val onSubmit: ( ) -> Unit = {
         val selectedUsers = selected.toList()
 //        Submit to Firebase
+
+//        coroutineScope.launch {
+//            fireDB.collection("sessionsRequests")
+//                .document(selectedUser.userID)
+//                .update("Requests", FieldValue.arrayUnion(authViewModel.currentAppUser))
+//                .addOnSuccessListener {
+//                    Log.d("Firestore", "Successfully added to Requesters")
+//                }
+//                .addOnFailureListener { e ->
+//                    if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
+//                        // Document doesn't exist, create it
+//                        val newDocData = hashMapOf("Requesters" to listOf(authViewModel.currentAppUser))
+//                        fireDB.collection("friendRequests")
+//                            .document(it.userID)
+//                            .set(newDocData, SetOptions.merge())
+//                            .addOnSuccessListener {
+//                                Log.d("Firestore", "Document created and user added")
+//                            }
+//                            .addOnFailureListener { err ->
+//                                Log.e("Firestore", "Error creating document", err)
+//                            }
+//                    } else {
+//                        Log.e("Firestore", "Error updating Requesters", e)
+//                    }
+//                }
+//        }
     }
 
 
@@ -182,7 +215,7 @@ fun GroupsPage(modifier : Modifier = Modifier, navController: NavController, aut
         Groups(changeAddInProgress = changeAddInProgress, navController = navController)
     }
     else{
-        AddGroup(changeAddInProgress = changeAddInProgress)
+        AddGroup(changeAddInProgress = changeAddInProgress, authViewModel)
     }
 }
 

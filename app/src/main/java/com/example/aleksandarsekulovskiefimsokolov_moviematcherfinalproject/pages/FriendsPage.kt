@@ -1,5 +1,6 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +48,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
@@ -103,7 +109,8 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
             ) {
                 Text("Put friends to DB")
             }
-            UserSearchResultsList(displayedFriends, onAddFriend = {}, modifier = Modifier.fillMaxSize(), showIcon = false)
+            UserSearchResultsList(displayedFriends, onAddFriend = {
+            }, modifier = Modifier.fillMaxSize(), showIcon = false)
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -116,8 +123,10 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
 @Composable
 fun AddFriend(
     changeAddInProgress: () -> Unit,
-    searchManager: SearchManager
+    searchManager: SearchManager,
+    authViewModel: AuthViewModel
 ){
+    val db = FirebaseFirestore.getInstance()
     val coroutineScope = rememberCoroutineScope()
     var friends by remember { mutableStateOf<List<UserDB>>(listOf()) }
     Column {
@@ -164,7 +173,33 @@ fun AddFriend(
             searchLabel = "Find Friend to Add",
             rightButtonIcon = Icons.Filled.Close
         )
-        UserSearchResultsList(friends, onAddFriend = {}, modifier = Modifier.fillMaxSize(), showIcon = true)
+        UserSearchResultsList(friends, onAddFriend = {
+            coroutineScope.launch {
+                db.collection("friendRequests")
+                    .document(it.userID)
+                    .update("Requesters", FieldValue.arrayUnion(authViewModel.currentAppUser))
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "Successfully added to Requesters")
+                    }
+                    .addOnFailureListener { e ->
+                        if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
+                            // Document doesn't exist, create it
+                            val newDocData = hashMapOf("Requesters" to listOf(authViewModel.currentAppUser))
+                            db.collection("friendRequests")
+                                .document(it.userID)
+                                .set(newDocData, SetOptions.merge())
+                                .addOnSuccessListener {
+                                    Log.d("Firestore", "Document created and user added")
+                                }
+                                .addOnFailureListener { err ->
+                                    Log.e("Firestore", "Error creating document", err)
+                                }
+                        } else {
+                            Log.e("Firestore", "Error updating Requesters", e)
+                        }
+                    }
+            }
+        }, modifier = Modifier.fillMaxSize(), showIcon = true)
     }
 
 }
@@ -189,7 +224,7 @@ fun FriendsPage(modifier : Modifier = Modifier, navController: NavController, au
         Friends(changeAddInProgress = changeAddInProgress, navController = navController)
     }
     else{
-        AddFriend(changeAddInProgress = changeAddInProgress, searchManager = searchManager)
+        AddFriend(changeAddInProgress = changeAddInProgress, searchManager = searchManager, authViewModel)
     }
 }
 
