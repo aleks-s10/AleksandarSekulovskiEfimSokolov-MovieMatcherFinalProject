@@ -107,14 +107,16 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) :
                 val requesters = document.get("Requests") as? List<String>
 
                 val deferredGroupFetches = requesters?.map { sessionId ->
-                    async { // Use async for each user fetch
+                    async { // Use async for each fetch
                         try {
-                            val userDocument = db.collection("sessionsRequests").document(sessionId.toString()).get().await()
+                            val session = db.collection("sessions").document(sessionId.toString()).get().await()
+
+
                             GroupDB(
-                                groupID = userDocument.id,
-                                name = userDocument.id,
-                                members = TODO(),
-                                pending = TODO(),
+                                groupID = sessionId,
+                                name = session.get("sessionName").toString(),
+                                members = (session.get("Users") as? Map<String, List<String>> ?: listOf("")) as Map<String, List<String>>,
+                                pending = true,
                             )
                         } catch (e: Exception) {
                             Log.e("NotificationWorker", "Error getting user document: $sessionId", e)
