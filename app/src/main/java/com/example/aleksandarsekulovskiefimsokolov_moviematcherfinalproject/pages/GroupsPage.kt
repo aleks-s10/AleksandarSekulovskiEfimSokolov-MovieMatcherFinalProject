@@ -46,7 +46,10 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.mode
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.google.firebase.firestore.FieldValue
@@ -95,6 +98,7 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGroup(
     changeAddInProgress: () -> Unit,
@@ -118,11 +122,15 @@ fun AddGroup(
             user != it
         }.toSet()
     }
+    var groupName by remember { mutableStateOf("") }
     val fireDB = FirebaseFirestore.getInstance()
 
 
     val onSubmit: ( ) -> Unit = {
         val selectedUsers = selected.toList()
+        val name = groupName
+        groupName = ""
+        selected = setOf()
 //        Submit to Firebase
 
 //        coroutineScope.launch {
@@ -173,6 +181,17 @@ fun AddGroup(
                 },
                 searchLabel = "Find Group to Add",
                 rightButtonIcon = Icons.Filled.Close
+            )
+            OutlinedTextField(
+                value = groupName,
+                onValueChange = {
+                    groupName = it
+                },
+                label = {
+                    Text(text = "Group Name")
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
             UserToasts(selected, onClick = {
                 {
