@@ -366,8 +366,7 @@ fun UserToast(
 ) {
     Card(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick(user) },
+            .clip(RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)

@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -168,11 +169,14 @@ fun TrendingContent(movies: List<MovieDB>, setCurrentMovie: (MovieDB) -> Unit,
                     favorites: Set<MovieDB>,
                     setFavorite: (MovieDB) -> Unit,
                     setUnFavorite: (MovieDB) -> Unit) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
     LazyColumn(
         Modifier.padding(bottom = 50.dp)
     ) {
-        items(movies.chunked(2)) {
-            Row(modifier = Modifier.fillMaxWidth()) {
+        items(movies.chunked((screenWidth / 200))) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly) {
                 it.forEach { movieIndex ->
                     TrendingItem(movieIndex, setCurrentMovie = setCurrentMovie,
                         favorites = favorites,
