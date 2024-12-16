@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthState
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.GroupDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.fetchAndStoreMovies
@@ -114,6 +115,7 @@ fun LoginPage(
                     val dbFire = FirebaseFirestore.getInstance()
                     var user = UserDB(email, "", 0, listOf(), listOf(), "", "", "", "", false, 0)
                     var localFriends : List<UserDB> = listOf()
+                    var localGroups : List<GroupDB> = listOf()
                     // Check if the username already exists
                     dbFire.collection("users").document(email)
                         .get()
@@ -137,6 +139,9 @@ fun LoginPage(
                                 val friendsList = document.get("Friends") as? List<String>
                                 // Or use forEach for cleaner syntax
                                 var friend = UserDB("", "", 0, listOf(), listOf(), "", "", "", "", false, 0)
+                                var group = GroupDB("", mapOf(), mapOf(), false, 0, "", "")
+
+                                val sessionsList = document.get("Sessions") as? List<String>
 
                                 friendsList?.forEach {
                                     dbFire.collection("users").document(it)
@@ -172,6 +177,9 @@ fun LoginPage(
 
                             }}
                     db.movieDao().insertUser(user)
+
+                    Log.d("groupf", localGroups.toString())
+
 
                     localFriends.forEach { friend ->
                         db.movieDao().insertUser(friend)

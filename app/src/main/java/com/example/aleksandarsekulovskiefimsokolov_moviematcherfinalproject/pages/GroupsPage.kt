@@ -67,6 +67,48 @@ fun GroupsContent(){
 
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun UserToasts(
+    users: Set<UserDB>,
+    onClick: (UserDB)  -> () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        users.forEach {
+            UserToast(
+                user = it,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+
+@Composable
+fun GroupsList(
+    groups: List<GroupDB>,
+    onStartSessionClick: (GroupDB) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        items(groups) { group ->
+            GroupPreview(
+                groupName = group.sessionName,
+                memberProfilePictures = listOf(R.drawable.joker),
+                onStartSessionClick = { onStartSessionClick(group) }
+            )
+        }
+    }
+}
+
+
 @Composable
 fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
     val context = LocalContext.current
@@ -204,7 +246,7 @@ fun AddGroup(
                         val groupDB = GroupDB(
                             groupID = data["sessionID"] as String,
                             users = data["users"] as Map<String, List<String>>,
-                            movies = data["movies"] as Map<String, List<Int>>,
+                            movies = data["movies"] as Map<String, Int>,
                             pending = false, // Or set the appropriate value
                             numUsers = data["numUsers"] as Int,
                             finalMovie = data["finalMovie"] as String,
@@ -365,23 +407,6 @@ fun GroupPreview(
     }
 }
 
-@Composable
-fun GroupsList(
-    groups: List<GroupDB>,
-    onStartSessionClick: (GroupDB) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(groups) { group ->
-            GroupPreview(
-                groupName = group.sessionName,
-                memberProfilePictures = listOf(R.drawable.joker),
-                onStartSessionClick = { onStartSessionClick(group) }
-            )
-        }
-    }
-}
-
 @Preview
 @Composable
 fun GroupScreen() {
@@ -407,29 +432,6 @@ fun GroupScreen() {
 //    GroupsPage()
 //}
 
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun UserToasts(
-    users: Set<UserDB>,
-    onClick: (UserDB)  -> () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        users.forEach {
-            UserToast(
-                user = it,
-                onClick = onClick
-            )
-        }
-    }
-}
 
 @Composable
 fun UserToast(

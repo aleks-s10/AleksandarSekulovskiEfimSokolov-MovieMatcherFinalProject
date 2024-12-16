@@ -41,7 +41,7 @@ data class UserDB(
 data class GroupDB (
     @PrimaryKey val groupID: String,
     val users: Map<String, List<String>>,
-    val movies: Map<String,List<Int>>,
+    val movies: Map<String, Int>,
     val pending: Boolean,
     val numUsers: Int = 0,
     val finalMovie: String = "",
@@ -65,6 +65,7 @@ class Converters {
     fun listToString(input: List<String>): String {
         return input.joinToString(separator = "@")
     }
+
     @TypeConverter
     fun stringToList(input: String): List<String> {
         return input.split("@")
@@ -87,21 +88,8 @@ class Converters {
     }
 
     @TypeConverter
-    fun mapListToInt(input: Map<String, List<Int>>): String {
-        return Gson().toJson(input)
-    }
-
-    @TypeConverter
-    fun intToMapList(input: String): Map<String, List<Int>> {
-        val type = object : TypeToken<Map<String, List<Int>>>() {}.type
-        return Gson().fromJson(input, type)
-    }
-
-    @TypeConverter
     fun stringToMapList(input: String): Map<String, List<String>> {
         val type = object : TypeToken<Map<String, List<String>>>() {}.type
         return Gson().fromJson(input, type)
     }
-
-
 }
