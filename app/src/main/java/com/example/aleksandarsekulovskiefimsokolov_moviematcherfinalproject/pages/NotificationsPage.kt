@@ -19,13 +19,6 @@ import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.Auth
 @Composable
 fun NotificationsPage(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
 
-    @Composable
-    fun NotificationsPage(
-        modifier: Modifier = Modifier,
-        navController: NavController,
-        authViewModel: AuthViewModel,
-        //notificationsViewModel: NotificationsViewModel = viewModel()
-    ) {
 //        val notifications by notificationsViewModel.notifications.collectAsState()
 //        val lifecycleOwner = LocalLifecycleOwner.current
 //
@@ -69,4 +62,3 @@ fun NotificationsPage(modifier : Modifier = Modifier, navController: NavControll
             }
         }
     }
-}

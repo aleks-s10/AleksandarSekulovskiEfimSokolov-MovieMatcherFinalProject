@@ -44,6 +44,9 @@ interface MovieDao {
 
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertGroupNotification(group: GroupDB)
+    suspend fun insertGroupNotification(group: GroupDB): Unit
+
+    @Query("SELECT * FROM groups where pending == 0")
+    suspend fun getGroups(): List<GroupDB>
 
 }

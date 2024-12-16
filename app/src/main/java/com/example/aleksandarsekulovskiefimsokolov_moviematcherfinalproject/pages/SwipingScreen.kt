@@ -72,9 +72,6 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirestoreMovieDB
 
-val sessionId = "LMXzm0Gumwi6EIcOUY5C"
-val userId = "aleks@gmail.com"
-
 @Composable
 fun Content(movie: FirestoreMovieDB){
     SubcomposeAsyncImage(
@@ -179,10 +176,12 @@ fun MovieList(movies: List<FirestoreMovieDB>) {
 }
 
 @Composable
-fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
+fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel, sessionId : String) {
     val db = FirebaseFirestore.getInstance()
     val moviesState = remember { mutableStateOf<List<FirestoreMovieDB>>(emptyList()) }
     val seenMovies = remember { mutableStateOf<List<Int>>(emptyList()) }
+
+    val userId = authViewModel.currentAppUser
 
     val finalMovieState = remember { mutableStateOf("") }
     val numUsersState = remember { mutableStateOf<Int?>(null) }
@@ -231,8 +230,18 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
             .addOnSuccessListener { document ->
                 val finalMovie = document.getString("finalMovie") ?: ""
                 val numUsers = document.getLong("numUsers")?.toInt() ?: 2
-                finalMovieState.value = finalMovie
+                val sessionMovieInteractions = document.get("Movies") as? Map<String, Long> ?: emptyMap()
                 numUsersState.value = numUsers
+                finalMovieState.value = finalMovie
+
+                if (finalMovieState.value.isEmpty()) {
+                    for ((movieId, longValue) in sessionMovieInteractions) {
+                        if (longValue.toInt() == numUsersState.value) {
+                            finalMovieState.value = movieId
+                            break // Exit the loop after finding the first match
+                        }
+                    }
+                }
 
                 // if finalMovie isn't empty, disable fetching/swiping
                 if (finalMovie.isNotEmpty()) {
@@ -399,7 +408,13 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
             return
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
+
                 Content(movie)
+                MovieTitleCard(
+                    modifier = Modifier.padding(top = 50.dp),
+                    movieTitle = "Your session picked a movie!",
+                    fontSize = 24
+                )
                 Column(modifier = Modifier.align(Alignment.BottomCenter)) {
                     MovieTitleCard(
                         modifier = Modifier.padding(top = 50.dp),

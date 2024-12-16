@@ -40,9 +40,12 @@ data class UserDB(
 @TypeConverters(Converters::class)
 data class GroupDB (
     @PrimaryKey val groupID: String,
-    val name: String,
-    val members: Map<String, List<String>>,
+    val users: Map<String, List<String>>,
+    val movies: Map<String,List<Int>>,
     val pending: Boolean,
+    val numUsers: Int = 0,
+    val finalMovie: String = "",
+    val sessionName: String = "",
 )
 
 @Entity(tableName = "sessions")
@@ -81,6 +84,17 @@ class Converters {
     @TypeConverter
     fun mapListToString(input: Map<String, List<String>>): String {
         return Gson().toJson(input)
+    }
+
+    @TypeConverter
+    fun mapListToInt(input: Map<String, List<Int>>): String {
+        return Gson().toJson(input)
+    }
+
+    @TypeConverter
+    fun intToMapList(input: String): Map<String, List<Int>> {
+        val type = object : TypeToken<Map<String, List<Int>>>() {}.type
+        return Gson().fromJson(input, type)
     }
 
     @TypeConverter

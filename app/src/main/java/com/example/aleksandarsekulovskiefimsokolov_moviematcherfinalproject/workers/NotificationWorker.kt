@@ -114,9 +114,12 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) :
 
                             GroupDB(
                                 groupID = sessionId,
-                                name = session.get("sessionName").toString(),
-                                members = (session.get("Users") as? Map<String, List<String>> ?: listOf("")) as Map<String, List<String>>,
+                                sessionName = session.get("sessionName").toString(),
+                                users = (session.get("Users") as? Map<String, List<String>> ?: listOf("")) as Map<String, List<String>>,
                                 pending = true,
+                                movies = session.get("movies") as Map<String, List<Int>>,
+                                numUsers = session.get("numUsers") as Int,
+                                finalMovie = "",
                             )
                         } catch (e: Exception) {
                             Log.e("NotificationWorker", "Error getting user document: $sessionId", e)
