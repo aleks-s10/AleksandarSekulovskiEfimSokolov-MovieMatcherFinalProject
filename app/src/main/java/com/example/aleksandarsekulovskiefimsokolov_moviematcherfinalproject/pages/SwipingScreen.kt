@@ -193,7 +193,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
             .document(sessionId)
             .get()
             .addOnSuccessListener { document ->
-                val usersMap = document.get("Users") as? Map<String, List<String>>
+                val usersMap = document.get("users") as? Map<String, List<String>>
                 seenMovies.value = usersMap?.get(userId)?.map { it.toInt() } ?: emptyList()
             }
     }
@@ -267,7 +267,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
         db.runTransaction { transaction ->
             val snapshot = transaction.get(sessionRef)
 
-            val usersMapAny = snapshot.get("Users") as? Map<String, Any> ?: emptyMap()
+            val usersMapAny = snapshot.get("users") as? Map<String, Any> ?: emptyMap()
             val usersMap: Map<String, List<String>> = usersMapAny.mapValues { entry ->
                 val list = (entry.value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                 list
@@ -287,7 +287,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 val updatedMoviesMap = moviesMap + (movieId.toString() to updatedCount)
 
                 transaction.update(sessionRef, mapOf(
-                    "Users" to updatedUsersMap,
+                    "users" to updatedUsersMap,
                     "Movies" to updatedMoviesMap
                 ))
 
@@ -297,7 +297,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 }
             } else {
                 transaction.update(sessionRef, mapOf(
-                    "Users" to updatedUsersMap
+                    "users" to updatedUsersMap
                 ))
             }
         }.addOnSuccessListener {
