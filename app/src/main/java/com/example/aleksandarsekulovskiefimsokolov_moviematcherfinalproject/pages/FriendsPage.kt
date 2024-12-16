@@ -99,16 +99,6 @@ fun Friends(changeAddInProgress: () -> Unit, navController: NavController){
                 searchLabel = "Search Friends",
                 rightButtonIcon = Icons.Filled.Add,
             )
-            OutlinedButton(
-                onClick = {
-                    coroutineScope.launch {
-                        val users = listOf(getsampleUser("James"), getsampleUser("Jane"), getsampleUser("Bob"))
-                        for (user in users)  db.movieDao().insertUser(user)
-                    }
-                }
-            ) {
-                Text("Put friends to DB")
-            }
             UserSearchResultsList(displayedFriends, onAddFriend = {
             }, modifier = Modifier.fillMaxSize(), showIcon = false)
         }
@@ -313,37 +303,4 @@ fun UserSearchResultsList(
         }
     }
 }
-
-val getsampleUser: (String) -> UserDB =
-{
-    UserDB(
-        userID = it,
-        userName = it,
-        profilePicture = R.drawable.joker,
-        movies = listOf("Interstellar", "Inception", "The Matrix"),
-        sessions = listOf("session1", "session2"),
-        email = "johndoe@example.com",
-        firstName = it,
-        lastName = "Doe",
-        favoriteGenre = "Sci-Fi",
-        pending = false,
-        self = 0
-    )
-}
-
-@Preview
-@Composable
-fun FriendListPreview() {
-
-
-    val users = listOf(getsampleUser("James"), getsampleUser("Jane"), getsampleUser("Bob"))
-    UserSearchResultsList(users, onAddFriend = {}, showIcon = true)
-}
-
-
-//@Preview
-//@Composable
-//fun FriendsPagePreview(){
-//    FriendsPage()
-//}
 
