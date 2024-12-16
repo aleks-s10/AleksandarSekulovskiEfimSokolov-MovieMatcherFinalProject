@@ -43,7 +43,10 @@ interface MovieDao {
     suspend fun prefixSearch(query: String): List<UserDB>
 
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insertGroupNotification(group: GroupDB)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertGroupNotification(group: GroupDB): Unit
+
+    @Query("SELECT * FROM groups where pending == 0")
+    suspend fun getGroups(): List<GroupDB>
 
 }

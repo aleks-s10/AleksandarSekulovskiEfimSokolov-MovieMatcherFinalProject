@@ -1,5 +1,6 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +62,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.GroupDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
@@ -242,29 +244,29 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
 
         coroutineScope.launch { // Use CoroutineScope for network calls
 
-            val document = db.collection("users").document(currentUser).get().await()
+            val documentUser = db.collection("users").document(currentUser).get().await()
 
-            if (document.exists()) {
+            if (documentUser.exists()) {
 
                 val user = UserDB(
 
-                    userID = document.getString("id") ?: "",
+                    userID = documentUser.getString("id") ?: "",
 
-                    email = document.getString("email") ?: "",
+                    email = documentUser.getString("email") ?: "",
 
-                    userName = document.getString("Username") ?: "",
+                    userName = documentUser.getString("Username") ?: "",
 
-                    firstName = document.getString("FirstName") ?: "",
+                    firstName = documentUser.getString("FirstName") ?: "",
 
-                    lastName = document.getString("LastName") ?: "",
+                    lastName = documentUser.getString("LastName") ?: "",
 
-                    profilePicture = document.getLong("Profile_Picture")?.toInt() ?: 0,
+                    profilePicture = documentUser.getLong("Profile_Picture")?.toInt() ?: 0,
 
-                    favoriteGenre = document.getString("favGenre") ?: "",
+                    favoriteGenre = documentUser.getString("favGenre") ?: "",
 
-                    movies = document.get("Movies") as? List<String> ?: listOf(),
+                    movies = documentUser.get("Movies") as? List<String> ?: listOf(),
 
-                    sessions = document.get("Sessions") as? List<String> ?: listOf(),
+                    sessions = documentUser.get("Sessions") as? List<String> ?: listOf(),
 
                     pending = false,
 
@@ -272,7 +274,11 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
 
                     )
 
-                val friends = document.get("Friends") as? List<String> ?: listOf()
+                val friends = documentUser.get("Friends") as? List<String> ?: listOf()
+
+                val sessionsList = documentUser.get("Sessions") as? List<String>
+
+                Log.d("sessionslist", sessionsList.toString())
 
 
                 friends.forEach { friendId ->
@@ -318,6 +324,28 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
                     }
 
                 }
+                sessionsList?.forEach{ groupId ->
+                    coroutineScope.launch {
+
+                        val groupDoc = db.collection("sessions").document(groupId).get().await()
+                        println("GROUPDOC" + groupDoc)
+                        if (groupDoc.exists()) {
+                            val groupSes = GroupDB(
+                                groupID = groupDoc.id,
+                                users = groupDoc.get("Users") as? Map<String, List<String>> ?: mapOf(),
+                                movies = groupDoc.get("Movies") as? Map<String, Int> ?: mapOf(),
+                                pending = false,
+                                numUsers = groupDoc.getLong("numUsers")?.toInt() ?: 0,
+                                finalMovie = groupDoc.getString("finalMovie") ?: "",
+                                sessionName = groupDoc.getString("sessionName") ?: "",
+                            )
+                            Log.d("localgroups", "group")
+                            localDB.movieDao().insertGroupNotification(groupSes)
+
+                        }
+                    }
+                }
+
 
 
                 localDB.movieDao().insertUser(user)

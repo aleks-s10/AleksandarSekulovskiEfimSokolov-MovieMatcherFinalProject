@@ -29,8 +29,9 @@ fun MyAppNavigation(modifier : Modifier = Modifier, authViewModel: AuthViewModel
         composable("home") {
             Homepage(modifier, navController, authViewModel)
         }
-        composable("swiping") {
-            SwipingScreen(modifier, navController, authViewModel)
+        composable("session/{groupID}") { backStackEntry ->
+            val groupID = backStackEntry.arguments?.getString("groupID")
+            SwipingScreen(modifier, navController, authViewModel, groupID.toString())
         }
         composable("trending") {
             TrendingPage(modifier, navController, authViewModel)

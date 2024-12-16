@@ -1,6 +1,7 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,6 +53,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirebaseSessions
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.GroupDB
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -64,8 +67,59 @@ fun GroupsContent(){
 
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun UserToasts(
+    users: Set<UserDB>,
+    onClick: (UserDB)  -> () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        users.forEach {
+            UserToast(
+                user = it,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+
+@Composable
+fun GroupsList(
+    groups: List<GroupDB>,
+    onStartSessionClick: (GroupDB) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        items(groups) { group ->
+            GroupPreview(
+                groupName = group.sessionName,
+                memberProfilePictures = listOf(R.drawable.joker),
+                onStartSessionClick = { onStartSessionClick(group) }
+            )
+        }
+    }
+}
+
+
 @Composable
 fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val db = DatabaseProvider.getDatabase(context)
+    var groups by remember { mutableStateOf<List<GroupDB>>(
+        listOf()
+    ) }
+    LaunchedEffect(Unit) {
+        groups = db.movieDao().getGroups()
+    }
     Box(
         modifier = Modifier.fillMaxSize()
     ){
@@ -79,16 +133,9 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
                 searchLabel = "Search Groups",
                 rightButtonIcon = Icons.Filled.Add,
             )
-            OutlinedButton(
-                onClick = {
-                    navController.navigate("swiping")
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(end = 10.dp)
-            ) {
-                Text("Swiping Screen")
-            }
+            GroupsList(groups, onStartSessionClick = {
+                navController.navigate("session/${it.groupID}")
+            })
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -128,36 +175,96 @@ fun AddGroup(
 
     val onSubmit: ( ) -> Unit = {
         val selectedUsers = selected.toList()
-        val name = groupName
-        groupName = ""
-        selected = setOf()
-//        Submit to Firebase
+        if (selectedUsers.isEmpty()){
+            Toast.makeText(context, "Please add a group name and make sure you select at least one user", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            val name = groupName
+            groupName = ""
+            selected = setOf()
 
-//        coroutineScope.launch {
-//            fireDB.collection("sessionsRequests")
-//                .document(selectedUser.userID)
-//                .update("Requests", FieldValue.arrayUnion(authViewModel.currentAppUser))
-//                .addOnSuccessListener {
-//                    Log.d("Firestore", "Successfully added to Requesters")
-//                }
-//                .addOnFailureListener { e ->
-//                    if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
-//                        // Document doesn't exist, create it
-//                        val newDocData = hashMapOf("Requesters" to listOf(authViewModel.currentAppUser))
-//                        fireDB.collection("friendRequests")
-//                            .document(it.userID)
-//                            .set(newDocData, SetOptions.merge())
-//                            .addOnSuccessListener {
-//                                Log.d("Firestore", "Document created and user added")
-//                            }
-//                            .addOnFailureListener { err ->
-//                                Log.e("Firestore", "Error creating document", err)
-//                            }
-//                    } else {
-//                        Log.e("Firestore", "Error updating Requesters", e)
-//                    }
-//                }
-//        }
+            coroutineScope.launch {
+                val newSessionRef = fireDB.collection("sessions").document()
+
+                val inviter = authViewModel.currentAppUser
+                val usersMap = selectedUsers.associate { it.userName to mutableListOf<String>() }
+                    .toMutableMap()
+                    .apply { put(inviter, mutableListOf()) }
+
+                val newSession = FirebaseSessions(
+                    sessionID = newSessionRef.id,
+                    users = usersMap,
+                    movies = emptyMap(),
+                    numUsers = selectedUsers.size + 1,
+                    finalMovie = "",
+                    sessionName = name
+                )
+
+                val data = hashMapOf(
+                    "sessionID" to newSession.sessionID,
+                    "users" to newSession.users,
+                    "movies" to newSession.movies,
+                    "numUsers" to newSession.numUsers,
+                    "finalMovie" to newSession.finalMovie,
+                    "sessionName" to newSession.sessionName
+                )
+
+                newSessionRef.set(newSession)
+                    .addOnSuccessListener {
+                        Toast.makeText(context, "Group created!", Toast.LENGTH_SHORT).show()
+                        Log.d("Firestore", "Successfully added to Sessions")
+                        selectedUsers.forEach { user ->
+                            fireDB.collection("sessionsRequests")
+                                .document(user.userName)
+                                .update("Requests", FieldValue.arrayUnion(newSessionRef.id))
+                                .addOnSuccessListener {
+                                    Log.d("Firestore", "Successfully added to Requesters")
+                                }
+                                .addOnFailureListener { e ->
+                                    if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
+                                        // Document doesn't exist, create it
+                                        val newDocData =
+                                            hashMapOf("Requests" to listOf(newSessionRef.id))
+                                        fireDB.collection("sessionsRequests")
+                                            .document(user.userName)
+                                            .set(newDocData, SetOptions.merge())
+                                            .addOnSuccessListener {
+                                                Log.d(
+                                                    "Firestore",
+                                                    "Document created and user added"
+                                                )
+                                            }
+                                            .addOnFailureListener { err ->
+                                                Log.e("Firestore", "Error creating document", err)
+                                            }
+                                    } else {
+                                        Log.e("Firestore", "Error updating Requesters", e)
+                                    }
+                                }
+                        }
+
+                        val groupDB = GroupDB(
+                            groupID = data["sessionID"] as String,
+                            users = data["users"] as Map<String, List<String>>,
+                            movies = data["movies"] as Map<String, Int>,
+                            pending = false, // Or set the appropriate value
+                            numUsers = data["numUsers"] as Int,
+                            finalMovie = data["finalMovie"] as String,
+                            sessionName = data["sessionName"] as String
+                        )
+
+                        coroutineScope.launch() {
+                            db.movieDao().insertGroupNotification(groupDB)
+                        }
+
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Firestore", "Error updating Requesters", e)
+                    }
+
+
+            }
+        }
     }
 
 
@@ -300,28 +407,6 @@ fun GroupPreview(
     }
 }
 
-data class GroupInfo(
-    val groupName: String,
-    val memberProfilePictures: List<Int>
-)
-
-@Composable
-fun GroupsList(
-    groups: List<GroupInfo>,
-    onStartSessionClick: (GroupInfo) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        items(groups) { group ->
-            GroupPreview(
-                groupName = group.groupName,
-                memberProfilePictures = group.memberProfilePictures,
-                onStartSessionClick = { onStartSessionClick(group) }
-            )
-        }
-    }
-}
-
 @Preview
 @Composable
 fun GroupScreen() {
@@ -340,45 +425,6 @@ fun GroupScreen() {
     )
 }
 
-@Preview
-@Composable
-fun GroupsScreen() {
-    val sampleGroups = listOf(
-        GroupInfo(
-            groupName = "The Comedy Crew",
-            memberProfilePictures = listOf(
-                R.drawable.joker,
-                R.drawable.moviepug,
-                R.drawable.wick
-            )
-        ),
-        GroupInfo(
-            groupName = "Action Aces",
-            memberProfilePictures = listOf(
-                R.drawable.moana,
-                R.drawable.panda,
-            )
-        ),
-        GroupInfo(
-            groupName = "Horror Horde",
-            memberProfilePictures = listOf(
-                R.drawable.deadpool,
-                R.drawable.minecraft,
-                R.drawable.mazerunner,
-                R.drawable.thumbsup
-            )
-        )
-    )
-
-    GroupsList(
-        groups = sampleGroups,
-        onStartSessionClick = { clickedGroup ->
-            // Handle start session logic for clickedGroup
-            // E.g., navigate to a session screen or show a toast
-        }
-    )
-}
-
 //
 //@Preview
 //@Composable
@@ -386,29 +432,6 @@ fun GroupsScreen() {
 //    GroupsPage()
 //}
 
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun UserToasts(
-    users: Set<UserDB>,
-    onClick: (UserDB)  -> () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        users.forEach {
-            UserToast(
-                user = it,
-                onClick = onClick
-            )
-        }
-    }
-}
 
 @Composable
 fun UserToast(
