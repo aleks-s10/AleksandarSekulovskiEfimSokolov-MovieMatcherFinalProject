@@ -332,7 +332,7 @@ fun TrendingPage(modifier : Modifier = Modifier, navController: NavController, a
                         if (groupDoc.exists()) {
                             val groupSes = GroupDB(
                                 groupID = groupDoc.id,
-                                users = groupDoc.get("Users") as? Map<String, List<String>> ?: mapOf(),
+                                users = groupDoc.get("users") as? Map<String, List<String>> ?: mapOf(),
                                 movies = groupDoc.get("Movies") as? Map<String, Int> ?: mapOf(),
                                 pending = false,
                                 numUsers = groupDoc.getLong("numUsers")?.toInt() ?: 0,

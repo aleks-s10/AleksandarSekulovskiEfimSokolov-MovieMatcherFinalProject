@@ -175,7 +175,7 @@ fun AddGroup(
 
     val onSubmit: ( ) -> Unit = {
         val selectedUsers = selected.toList()
-        if (selectedUsers.isEmpty()){
+        if (selectedUsers.isEmpty() || groupName.isEmpty()){
             Toast.makeText(context, "Please add a group name and make sure you select at least one user", Toast.LENGTH_SHORT).show()
         }
         else {
@@ -199,6 +199,12 @@ fun AddGroup(
                     finalMovie = "",
                     sessionName = name
                 )
+
+                fireDB.runBatch { batch ->
+                    val currentUserRef = fireDB.collection("users").document(inviter)
+
+                    batch.update(currentUserRef, "Sessions", FieldValue.arrayUnion(newSessionRef.id))
+                }
 
                 val data = hashMapOf(
                     "sessionID" to newSession.sessionID,

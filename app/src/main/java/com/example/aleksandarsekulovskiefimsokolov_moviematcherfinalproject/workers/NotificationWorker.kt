@@ -111,7 +111,7 @@ class NotificationWorker(
                         val sessionDoc = db.collection("sessions").document(sessionId).get().await()
                         GroupDB(
                             groupID = sessionId,
-                            users = sessionDoc.get("Users") as? Map<String, List<String>> ?: emptyMap(),
+                            users = sessionDoc.get("users") as? Map<String, List<String>> ?: emptyMap(),
                             movies = sessionDoc.get("movies") as? Map<String, Int> ?: emptyMap(),
                             pending = true,
                             numUsers = sessionDoc.getLong("numUsers")?.toInt() ?: 0,
