@@ -105,6 +105,7 @@ fun GroupNotificationCard(
                     Text("Session")
                 }
             }
+
             Spacer(Modifier.height(5.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

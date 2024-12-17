@@ -434,7 +434,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 }
                 IconButton(
                     onClick = { navController.navigate("groups")},
-                    modifier = Modifier.align(Alignment.TopEnd)
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
@@ -531,7 +531,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 ) }
                 IconButton(
                     onClick = { navController.navigate("groups")},
-                    modifier = Modifier.align(Alignment.TopEnd)
+                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 20.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Close,
