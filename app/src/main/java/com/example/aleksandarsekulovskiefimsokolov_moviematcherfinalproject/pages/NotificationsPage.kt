@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GroupNotificationCard(
     groupName: String,
+    members: List<String>,
     onStartSessionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -105,6 +106,19 @@ fun GroupNotificationCard(
                 }
             }
 
+            Spacer(Modifier.height(5.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                members.forEach { profilePicRes ->
+                    Text(
+                        text = profilePicRes,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
     }
 }
@@ -119,6 +133,7 @@ fun GroupNotificationsList(
         items(groups) { group ->
             GroupNotificationCard(
                 groupName = group.sessionName,
+                members = group.users.keys.toList(),
                 onStartSessionClick = { onStartSessionClick(group) }
             )
         }

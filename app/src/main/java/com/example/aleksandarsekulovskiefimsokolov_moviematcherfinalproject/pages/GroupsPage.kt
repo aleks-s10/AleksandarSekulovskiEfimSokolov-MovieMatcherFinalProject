@@ -120,7 +120,7 @@ fun GroupsList(
             Log.d("Users", memberProfilePictures.toString())
             GroupPreview(
                 groupName = group.sessionName,
-                memberProfilePictures = memberProfilePictures,
+                members = group.users.keys.toList(),
                 onStartSessionClick = { onStartSessionClick(group) }
             )
         }
@@ -378,7 +378,7 @@ fun GroupsPage(modifier : Modifier = Modifier, navController: NavController, aut
 @Composable
 fun GroupPreview(
     groupName: String,
-    memberProfilePictures: List<Int>,
+    members: List<String>,
     onStartSessionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -421,14 +421,10 @@ fun GroupPreview(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                memberProfilePictures.forEach { profilePicRes ->
-                    Image(
-                        painter = painterResource(id = getProfilePicture(profilePicRes)),
-                        contentDescription = "Group member profile picture",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                        , contentScale = ContentScale.Crop
+                members.forEach { profilePicRes ->
+                    Text(
+                        text = profilePicRes,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -436,23 +432,6 @@ fun GroupPreview(
     }
 }
 
-@Preview
-@Composable
-fun GroupScreen() {
-    val sampleMembers = listOf(
-        R.drawable.joker,
-        R.drawable.moviepug,
-        R.drawable.wick
-    )
-
-    GroupPreview(
-        groupName = "The Comedy Crew",
-        memberProfilePictures = sampleMembers,
-        onStartSessionClick = {
-            // Handle start session logic here
-        }
-    )
-}
 
 //
 //@Preview
