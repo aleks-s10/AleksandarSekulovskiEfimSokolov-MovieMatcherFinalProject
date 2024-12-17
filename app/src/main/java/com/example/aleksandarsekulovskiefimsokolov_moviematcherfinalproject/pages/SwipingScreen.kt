@@ -207,7 +207,11 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
             return
         }
 
-        val randomIds = availableMovieIds.shuffled().take(10)
+        val randomIds = if (availableMovieIds.size >= 10) {
+            availableMovieIds.shuffled().take(10)
+        } else {
+            availableMovieIds.shuffled() // Fewer than 10 IDs, take all available
+        }
 
         db.collection("movies")
             .whereIn("id", randomIds)
@@ -283,7 +287,10 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                     (entry.value as? Long)?.toInt() ?: 0
                 }
                 val movieLikes = moviesMap[movieId.toString()] ?: 0
-                val updatedCount = movieLikes + 1
+                var updatedCount = movieLikes + 1
+                if (movieId in seenMovies.value) {
+                    updatedCount -= 1
+                }
                 val updatedMoviesMap = moviesMap + (movieId.toString() to updatedCount)
 
                 transaction.update(sessionRef, mapOf(
@@ -292,6 +299,7 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
                 ))
 
                 val currentNumUsers = numUsersState.value
+
                 if (currentNumUsers != null && updatedCount == currentNumUsers) {
                     transaction.update(sessionRef, "finalMovie", movieId.toString())
                 }
@@ -372,7 +380,6 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
 
     LaunchedEffect(dismissRight) {
         if (dismissRight && fetchingMoviesAllowed.value) {
-            delay(300)
             val currentMovie = moviesState.value.getOrNull(i) ?: return@LaunchedEffect
             updateSessionData(currentMovie.id, true) {
                 onSwipeRight.invoke()
@@ -383,7 +390,6 @@ fun SwipingScreen(modifier : Modifier = Modifier, navController: NavController, 
 
     LaunchedEffect(dismissLeft) {
         if (dismissLeft && fetchingMoviesAllowed.value) {
-            delay(300)
             val currentMovie = moviesState.value.getOrNull(i) ?: return@LaunchedEffect
             updateSessionData(currentMovie.id, false) {
                 onSwipeLeft.invoke()

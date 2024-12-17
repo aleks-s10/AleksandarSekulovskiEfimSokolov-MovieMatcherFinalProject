@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GroupNotificationCard(
     groupName: String,
-    memberProfilePictures: List<Int>,
+    members: List<String>,
     onStartSessionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -111,14 +111,10 @@ fun GroupNotificationCard(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                memberProfilePictures.forEach { profilePicRes ->
-                    Image(
-                        painter = painterResource(id = profilePicRes),
-                        contentDescription = "Group member profile picture",
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                members.forEach { profilePicRes ->
+                    Text(
+                        text = profilePicRes,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -136,7 +132,7 @@ fun GroupNotificationsList(
         items(groups) { group ->
             GroupNotificationCard(
                 groupName = group.sessionName,
-                memberProfilePictures = listOf(R.drawable.joker),
+                members = group.users.keys.toList(),
                 onStartSessionClick = { onStartSessionClick(group) }
             )
         }
