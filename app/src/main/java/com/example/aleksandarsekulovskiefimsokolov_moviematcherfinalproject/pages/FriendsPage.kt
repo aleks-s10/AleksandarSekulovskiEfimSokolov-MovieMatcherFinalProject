@@ -149,7 +149,7 @@ fun AddFriend(
                                 email = if (email != null) Json.decodeFromJsonElement<String>(email) else "",
                                 firstName = if (firstName != null) Json.decodeFromJsonElement<String>(firstName) else "",
                                 lastName = if (lastName != null) Json.decodeFromJsonElement<String>(lastName) else "",
-                                profilePicture = getProfilePicture( if (profilePicture != null ) Json.decodeFromJsonElement<Int>(profilePicture) else -1 ),
+                                profilePicture =  if (profilePicture != null ) Json.decodeFromJsonElement<Int>(profilePicture) else -1 ,
                                 pending = false,
                                 self = 0,
                                 movies = if (sessions != null ) Json.decodeFromJsonElement<List<String>>(sessions) else listOf(),
