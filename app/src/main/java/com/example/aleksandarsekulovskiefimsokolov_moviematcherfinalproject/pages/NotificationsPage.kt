@@ -193,7 +193,7 @@ fun FriendRequestCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = R.drawable.joker),
+                painter = painterResource(id = getProfilePicture(user.profilePicture)),
                 contentDescription = "${user.firstName} ${user.lastName} Profile Picture",
                 modifier = Modifier
                     .size(55.dp)

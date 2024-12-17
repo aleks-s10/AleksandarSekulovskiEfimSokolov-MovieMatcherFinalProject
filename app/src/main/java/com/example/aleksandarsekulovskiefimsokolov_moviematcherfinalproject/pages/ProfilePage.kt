@@ -80,7 +80,7 @@ val genres = listOf(
 fun updateUserInfo(
     userId: String,
     Movies: List<String>? = null,
-    Profile_Picture: String? = null,
+    Profile_Picture: Int? = null,
     Sessions: List<String>? = null,
     email: String? = null,
     username: String? = null,
@@ -98,10 +98,10 @@ fun updateUserInfo(
     Profile_Picture?.let { updateData["Profile_Picture"] = it }
     Sessions?.let { updateData["Sessions"] = it }
     email?.let { updateData["email"] = it }
-    username?.let { updateData["username"] = it }
+    username?.let { updateData["Username"] = it }
     firstName?.let { updateData["firstName"] = it }
     lastName?.let { updateData["lastName"] = it }
-    favoriteGenre?.let { updateData["favoriteGenre"] = it }
+    favoriteGenre?.let { updateData["favGenre"] = it }
 
     // Perform Firestore update only if there is data to update
     if (updateData.isNotEmpty()) {
@@ -126,7 +126,7 @@ fun ProfileScreen(navController: NavController) {
     var lastName by remember { mutableStateOf<String>("")}
     var username by remember { mutableStateOf<String>("")}
     var favoriteGenre by remember { mutableStateOf<String>("")}
-
+    var profilePicture by remember { mutableIntStateOf(0) }
     var favorites by remember { mutableStateOf<Set<MovieDB>>(sampleMovies.toSet()) }
     val setFavorite: (MovieDB) -> Unit = {favorites = favorites + it}
     val setUnFavorite: (MovieDB) -> Unit = { movie ->
@@ -160,18 +160,22 @@ fun ProfileScreen(navController: NavController) {
         lastName = profile.lastName
         favoriteGenre = profile.favoriteGenre
         username = profile.userName
+        profilePicture = profile.profilePicture
     }
 
     val onSubmit: (UserDB) -> Unit = {
         firstName = it.firstName
         lastName = it.lastName
         favoriteGenre = it.favoriteGenre
+        username = it.userName
+        profilePicture = it.profilePicture
         updateUserInfo(
-            userId = it.userName,
+            userId = it.email,
             firstName = it.firstName,
             lastName = it.lastName,
             favoriteGenre = it.favoriteGenre,
-            username = it.userName
+            username = it.userName,
+            Profile_Picture = it.profilePicture
         )
     }
 
@@ -189,7 +193,7 @@ fun ProfileScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()) {
                     Row {
                         Image(
-                            painter = painterResource(id = profilePicturePlaceholder),
+                            painter = painterResource(id = getProfilePicture(profilePicture)),
                             contentDescription = "Profile Picture",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -304,7 +308,10 @@ fun ProfileEdit(
     var lastName by remember { mutableStateOf(user.lastName) }
     var username by remember { mutableStateOf(user.userName) }
     var favoriteGenre by remember { mutableStateOf(user.favoriteGenre) }
-
+    var profilePicture by remember { mutableIntStateOf(user.profilePicture) }
+    var selectIndex: (Int) -> Unit = {
+        profilePicture = it
+    }
     var expanded by remember { mutableStateOf(false) }
 
     val genres = listOf(
@@ -433,7 +440,7 @@ fun ProfileEdit(
                     )
                 }
             }
-
+            ProfilePicturePicker(images, profilePicture, selectIndex)
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
@@ -441,7 +448,8 @@ fun ProfileEdit(
                         firstName = firstName,
                         lastName = lastName,
                         userName = username,
-                        favoriteGenre = favoriteGenre
+                        favoriteGenre = favoriteGenre,
+                        profilePicture = profilePicture
                     )
                     onSubmit(updatedUser)
                     flipEdit()

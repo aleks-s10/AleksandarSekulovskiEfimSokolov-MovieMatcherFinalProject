@@ -149,7 +149,7 @@ fun AddFriend(
                                 email = if (email != null) Json.decodeFromJsonElement<String>(email) else "",
                                 firstName = if (firstName != null) Json.decodeFromJsonElement<String>(firstName) else "",
                                 lastName = if (lastName != null) Json.decodeFromJsonElement<String>(lastName) else "",
-                                profilePicture =  R.drawable.joker, // if (profilePicture != null ) Json.decodeFromJsonElement<Int>(profilePicture) else 0,
+                                profilePicture = getProfilePicture( if (profilePicture != null ) Json.decodeFromJsonElement<Int>(profilePicture) else -1 ),
                                 pending = false,
                                 self = 0,
                                 movies = if (sessions != null ) Json.decodeFromJsonElement<List<String>>(sessions) else listOf(),
@@ -244,7 +244,7 @@ fun UserSearchResultCard(
         ) {
             // Profile Picture
             Image(
-                painter = painterResource(id = R.drawable.joker),
+                painter = painterResource(id = getProfilePicture(user.profilePicture)),
                 contentDescription = "${user.firstName} ${user.lastName} Profile Picture",
                 modifier = Modifier
                     .size(55.dp)

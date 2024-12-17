@@ -123,8 +123,6 @@ fun SignupPage(modifier : Modifier = Modifier, navController: NavController, aut
         }
     }
 
-    val images = listOf(R.drawable.joker, R.drawable.joker, R.drawable.joker, R.drawable.joker, R.drawable.joker)
-
     var selectIndex: (Int) -> Unit = {
         profilePicture = it
     }
@@ -386,4 +384,21 @@ fun ProfilePicturePicker(
             }
         }
     }
+}
+
+val images: List<Int> = listOf(
+    R.drawable.joker,
+    R.drawable.wick,
+    R.drawable.thumbsup,
+    R.drawable.thumbsdown,
+    R.drawable.moana
+)
+
+val imageMap: Map<Int, Int> = images
+    .mapIndexed { index, image -> index to image }
+    .toMap()
+
+
+fun getProfilePicture(index: Int): Int {
+    return imageMap[index] ?: R.drawable.joker
 }

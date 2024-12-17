@@ -400,7 +400,7 @@ fun GroupPreview(
             ) {
                 memberProfilePictures.forEach { profilePicRes ->
                     Image(
-                        painter = painterResource(id = profilePicRes),
+                        painter = painterResource(id = getProfilePicture(profilePicRes)),
                         contentDescription = "Group member profile picture",
                         modifier = Modifier
                             .size(60.dp)
