@@ -33,6 +33,12 @@ interface MovieDao {
     @Query("SELECT * FROM users where self == 1")
     suspend fun getSelf(): UserDB
 
+    @Query("SELECT * FROM users where userID == :id")
+    suspend fun getUser(id :String ): UserDB
+
+    @Query("SELECT * FROM users where userName == :id")
+    suspend fun getUserByUsername(id :String ): UserDB
+
     @Query("SELECT * FROM users where self == 0")
     suspend fun getFriends(): List<UserDB>
 

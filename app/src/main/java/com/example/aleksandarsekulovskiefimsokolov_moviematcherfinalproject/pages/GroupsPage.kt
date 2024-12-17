@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.AuthViewModel
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -45,21 +43,23 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.R
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.UserDB
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.utils.DatabaseProvider
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.FirebaseSessions
 import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.GroupDB
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.models.MovieDatabase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 
 
 @Composable
@@ -95,13 +95,32 @@ fun UserToasts(
 fun GroupsList(
     groups: List<GroupDB>,
     onStartSessionClick: (GroupDB) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    db: MovieDatabase
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(groups) { group ->
+            val users = group.users.keys.toList()
+            Log.d("Users", users.toString())
+            var memberProfilePictures = listOf<Int>()
+            val user = null
+            LaunchedEffect(
+                Unit
+            ) {
+                for (user in users){
+                        if ("@" in user.toString()) {
+                            memberProfilePictures += db.movieDao().getUser(user.toString()).profilePicture.toInt()
+                        }
+                        else{
+                            memberProfilePictures += db.movieDao().getUserByUsername(user.toString()).profilePicture.toInt()
+                        }
+                }
+            }
+
+            Log.d("Users", memberProfilePictures.toString())
             GroupPreview(
                 groupName = group.sessionName,
-                memberProfilePictures = listOf(R.drawable.joker),
+                memberProfilePictures = memberProfilePictures,
                 onStartSessionClick = { onStartSessionClick(group) }
             )
         }
@@ -133,9 +152,13 @@ fun Groups(changeAddInProgress: () -> Unit, navController: NavController){
                 searchLabel = "Search Groups",
                 rightButtonIcon = Icons.Filled.Add,
             )
-            GroupsList(groups, onStartSessionClick = {
-                navController.navigate("session/${it.groupID}")
-            })
+            GroupsList(
+                groups,
+                onStartSessionClick = {
+                    navController.navigate("session/${it.groupID}")
+                },
+                db = db,
+            )
         }
         FooterNavigation(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -187,7 +210,7 @@ fun AddGroup(
                 val newSessionRef = fireDB.collection("sessions").document()
 
                 val inviter = authViewModel.currentAppUser
-                val usersMap = selectedUsers.associate { it.userName to mutableListOf<String>() }
+                val usersMap = selectedUsers.associate { it.userID to mutableListOf<String>() }
                     .toMutableMap()
                     .apply { put(inviter, mutableListOf()) }
 
@@ -221,7 +244,7 @@ fun AddGroup(
                         Log.d("Firestore", "Successfully added to Sessions")
                         selectedUsers.forEach { user ->
                             fireDB.collection("sessionsRequests")
-                                .document(user.userName)
+                                .document(user.userID)
                                 .update("Requests", FieldValue.arrayUnion(newSessionRef.id))
                                 .addOnSuccessListener {
                                     Log.d("Firestore", "Successfully added to Requesters")
@@ -232,7 +255,7 @@ fun AddGroup(
                                         val newDocData =
                                             hashMapOf("Requests" to listOf(newSessionRef.id))
                                         fireDB.collection("sessionsRequests")
-                                            .document(user.userName)
+                                            .document(user.userID)
                                             .set(newDocData, SetOptions.merge())
                                             .addOnSuccessListener {
                                                 Log.d(
