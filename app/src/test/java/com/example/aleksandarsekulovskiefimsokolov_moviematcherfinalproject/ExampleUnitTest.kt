@@ -1,5 +1,6 @@
 package com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject
 
+import com.example.aleksandarsekulovskiefimsokolov_moviematcherfinalproject.pages.getProfilePicture
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -11,7 +12,20 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun test_valid_index() {
+        val index = 2
+        val expectedDrawable = R.drawable.moana
+        val actual = getProfilePicture(index)
+        assertEquals(expectedDrawable, actual)
     }
+
+    @Test
+    fun test_invalid_index() {
+        val invalidIndex = 999
+        val expected = R.drawable.defaultprofile
+        val actual = getProfilePicture(invalidIndex)
+        assertEquals(expected, actual)
+    }
+
+
 }

@@ -389,9 +389,12 @@ fun ProfilePicturePicker(
 val images: List<Int> = listOf(
     R.drawable.joker,
     R.drawable.wick,
-    R.drawable.thumbsup,
-    R.drawable.thumbsdown,
-    R.drawable.moana
+    R.drawable.moana,
+    R.drawable.emoji,
+    R.drawable.lego,
+    R.drawable.mario,
+    R.drawable.ken,
+    R.drawable.dobby
 )
 
 val imageMap: Map<Int, Int> = images
@@ -400,5 +403,5 @@ val imageMap: Map<Int, Int> = images
 
 
 fun getProfilePicture(index: Int): Int {
-    return imageMap[index] ?: R.drawable.joker
+    return imageMap[index] ?: R.drawable.defaultprofile
 }
